@@ -1,15 +1,18 @@
-import psycopg2
+#import psycopg2
 from flask import Flask, request, jsonify
+from dotenv import load_dotenv
+import os
 
 app = Flask(__name__)
+load_dotenv()
 
 def get_db_connection():
     conn = psycopg2.connect(
-        dbname="Sistema_eleitoral",
-        user="postgres",
-        password="teste",
-        host="54321",
-        port="1111"
+        dbname=os.getenv("dbname"),
+        user=os.getenv("user"),
+        password=os.getenv("password"),
+        host=os.getenv("host"),
+        port=os.getenv("port")
     )
     return conn
 
