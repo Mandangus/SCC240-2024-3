@@ -172,5 +172,102 @@ def delete_entity():
         return render_template('delete.html', message="Entity deleted successfully")
     return render_template('delete.html')
 
+@app.route('/inserir', methods=['GET', 'POST'])
+def inserir():
+    if request.method == 'POST':
+        entity = request.form['entity']
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        if entity == 'pleito':
+            codigo_pleito = request.form['cod_Pleito']
+            qtd_votos = request.form['qtd_votos']
+            query = "INSERT INTO pleito (codigo_pleito, qtd_votos) VALUES (%s, %s)"
+            cursor.execute(query, (codigo_pleito, qtd_votos))
+        
+        elif entity == 'candidatura':
+            codigo_candidatura = request.form['codigo_candidatura']
+            codigo_candidato = request.form['codigo_candidato']
+            codigo_cargo = request.form['codigo_cargo']
+            ano = request.form['ano']
+            pleito = request.form['pleito']
+            query = "INSERT INTO candidatura (codigo_candidatura, codigo_candidato, codigo_cargo, ano, pleito) VALUES (%s, %s, %s, %s, %s)"
+            cursor.execute(query, (codigo_candidatura, codigo_candidato, codigo_cargo, ano, pleito))
+        
+        elif entity == 'candidato':
+            codigo_candidato = request.form['codigo_candidato']
+            nome = request.form['nome']
+            partido = request.form['partido']
+            estado_ficha = request.form['estado_ficha']
+            query = "INSERT INTO candidato (codigo_candidato, nome, partido, estado_ficha) VALUES (%s, %s, %s, %s)"
+            cursor.execute(query, (codigo_candidato, nome, partido, estado_ficha))
+        
+        elif entity == 'cargo':
+            codigo_cargo = request.form['cod_Cargo']
+            localizacao = request.form['localidade']
+            qtd_eleitos = request.form['qtd_Eleitos']
+            query = "INSERT INTO cargo (cod_cargo, localidade, qtd_eleitos) VALUES (%s, %s, %s)"
+            cursor.execute(query, (codigo_cargo, localizacao, qtd_eleitos))
+        
+        elif entity == 'equipeapoio':
+            codigo_equipe = request.form['codigo_equipe']
+            nome = request.form['nome']
+            funcao = request.form['funcao']
+            query = "INSERT INTO equipeapoio (codigo_equipe, nome, funcao) VALUES (%s, %s, %s)"
+            cursor.execute(query, (codigo_equipe, nome, funcao))
+        
+        elif entity == 'participanteequipeapoio':
+            codigo_participante = request.form['codigo_participante']
+            codigo_equipe = request.form['codigo_equipe']
+            nome = request.form['nome']
+            query = "INSERT INTO participanteequipeapoio (codigo_participante, codigo_equipe, nome) VALUES (%s, %s, %s)"
+            cursor.execute(query, (codigo_participante, codigo_equipe, nome))
+        
+        elif entity == 'doadorescampanha':
+            codigo_doador = request.form['codigo_doador']
+            tipo_doador = request.form['tipo_doador']
+            valor = request.form['valor']
+            query = "INSERT INTO doadorescampanha (codigo_doador, tipo_doador, valor) VALUES (%s, %s, %s)"
+            cursor.execute(query, (codigo_doador, tipo_doador, valor))
+        
+        elif entity == 'processojudicial':
+            codigo_processo = request.form['codigo_processo']
+            descricao = request.form['descricao']
+            data_inicio = request.form['data_inicio']
+            data_fim = request.form['data_fim']
+            query = "INSERT INTO processojudicial (codigo_processo, descricao, data_inicio, data_fim) VALUES (%s, %s, %s, %s)"
+            cursor.execute(query, (codigo_processo, descricao, data_inicio, data_fim))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        message = "Dados inseridos com sucesso!"
+        return render_template('inserir.html', message=message)
+    
+    return render_template('inserir.html')
+
+@app.route('/doacoes', methods=['GET', 'POST'])
+def doacoes():
+    if request.method == 'POST':
+        cod_doador = request.form['cod_doador']
+        tipo_doador = request.form['tipo_doador']
+        valor = request.form['valor']
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        query = "INSERT INTO DoadoresCampanha (Cod_Doador, Tipo_Doador, Valor) VALUES (%s, %s, %s)"
+        cursor.execute(query, (cod_doador, tipo_doador, valor))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        message = "Doação registrada com sucesso!"
+        return render_template('doacoes.html', message=message)
+    
+    return render_template('doacoes.html')
+
 if __name__ == '__main__':
     app.run(debug=True)
