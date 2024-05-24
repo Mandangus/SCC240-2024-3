@@ -279,11 +279,6 @@ def inserir():
             if not doador_existente_f and tipo_doador == 'Físico':
                 query = "INSERT INTO doadorfisico (cod_doador, cpf) VALUES (%s, %s)"
                 cursor.execute(query, (codigo_doador, cpf))
-            elif doador_existente_f and tipo_doador == 'Físico':
-                cursor.execute("SELECT quantDoacoes FROM doa WHERE cod_doador = %s", (codigo_doador,))
-                count = cursor.fetchone()
-                query = f"UPDATE doa SET quantDoacoes={count+1} WHERE cod_doador=%s"
-                cursor.execute(query, (codigo_doador, cpf))
             elif not doador_existente_j and tipo_doador == 'Jurídico':
                 query = "INSERT INTO doadorjuridico (cod_doador, cnpj) VALUES (%s, %s)"
                 cursor.execute(query, (codigo_doador, cnpj))
@@ -304,6 +299,25 @@ def inserir():
         return render_template('inserir.html', message=message)
     
     return render_template('inserir.html')
+
+@app.route('/doacoes', methods=['GET', 'POST'])
+def doacoes():
+    if request.method == 'POST':
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cod_doador = request.form['cod_doador']
+        valor = request.form['valor']
+        quantDoacoes = request.form['quantDoacoes']
+        
+        try:
+            cursor.execute("INSERT INTO Doa (cod_doador, valor, quantDoacoes) VALUES (%s, %s, %s)", (cod_doador, valor, quantDoacoes))
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            return f"Erro ao registrar doação: {e}"
+
+    message = "Dados inseridos com sucesso!"
+    return render_template('doacoes.html', message=message)
 
 if __name__ == '__main__':
     app.run(debug=True)
