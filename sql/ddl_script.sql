@@ -1,35 +1,52 @@
+-- VERIFICADAS
 
-CREATE TABLE Pleito (
-    Cod_Pleito INT PRIMARY KEY,
-    Qtd_Votos INT NOT NULL DEFAULT 0,
+CREATE TABLE PARTIDO(
+    cod_partido INTEGER PRIMARY KEY,
+    nome VARCHAR(60) UNIQUE NOT NULL
+);
 
-    CONSTRAINT ck_votos CHECK(Qtd_Votos >= 0)
+CREATE TABLE programasDePartido(
+    cod_partido INTEGER PRIMARY KEY,
+    programa VARCHAR(255) NOT NULL,
+
+    CONSTRAINT cod_partido FOREIGN KEY(cod_partido) REFERENCES partido(cod_partido) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE Candidato (
-    Cod_Candidato INT PRIMARY KEY,
-    Partido VARCHAR(50),
+    Cod_Candidato INTEGER,
+    nome VARCHAR(60) UNIQUE NOT NULL,
+    Partido INTEGER NOT NULL,
     Estado_Ficha VARCHAR(50) NOT NULL,
 
-    CONSTRAINT ck_candidato CHECK(Cod_Candidato > 0)
+    CONSTRAINT ck_candidato CHECK(Cod_Candidato > 0),
+    CONSTRAINT candidato_pk PRIMARY KEY(Cod_Candidato),
+    CONSTRAINT candidato_fk FOREIGN KEY(Partido) REFERENCES Partido(cod_partido) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE Cargo (
-    Cod_Cargo INT PRIMARY KEY,
+    Cod_Cargo INTEGER PRIMARY KEY,
+    nome VARCHAR(60) NOT NULL,
     Localidade VARCHAR(50),
-    Qtd_Eleitos INT NOT NULL DEFAULT 0
+    Qtd_Eleitos INTEGER NOT NULL DEFAULT 0
 
     CONSTRAINT ck_cargo_eleitos CHECK(Qtd_Eleitos >= 0),
     CONSTRAINT ck_cargo CHECK(Cod_Cargo > 0)
 );
 
+CREATE TABLE Pleito (
+    Cod_Pleito INTEGER PRIMARY KEY,
+    Qtd_Votos INTEGER NOT NULL DEFAULT 0,
+
+    CONSTRAINT ck_votos CHECK(Qtd_Votos >= 0)
+);
+
 CREATE TABLE Candidatura (
-    Cod_Candidatura INT PRIMARY KEY,
-    Cod_Candidato INT NOT NULL,
-    Cod_Cargo INT NOT NULL,
-    Ano INT NOT NULL,
-    Pleito INT,
-    Cod_Candidatura_Vice INT,
+    Cod_Candidatura INTEGER PRIMARY KEY,
+    Cod_Candidato INTEGER NOT NULL,
+    Cod_Cargo INTEGER NOT NULL,
+    Ano INTEGER NOT NULL,
+    Pleito INTEGER,
+    Cod_Candidatura_Vice INTEGER,
     Eleito BOOLEAN DEFAULT FALSE,
 
     CONSTRAINT ck_ano CHECK(Ano <= EXTRACT(YEAR FROM CURRENT_DATE) AND Ano >= 1900),
@@ -40,15 +57,16 @@ CREATE TABLE Candidatura (
 );
 
 CREATE TABLE EquipeApoio (
-    Cod_Equipe INT PRIMARY KEY
+    Cod_Equipe INTEGER PRIMARY KEY,
+    nomeEquipe VARCHAR(60) UNIQUE NOT NULL,
 
     CONSTRAINT ck_equipe CHECK(Cod_Equipe > 0)
 );
 
 CREATE TABLE ParticipanteEquipeApoio (
-    Cod_Participante INT PRIMARY KEY,
-    Cod_Equipe INT NOT NULL,
-    Ano INT,
+    Cod_Participante INTEGER PRIMARY KEY,
+    Cod_Equipe INTEGER NOT NULL,
+    Ano INTEGER,
     Estado_Ficha VARCHAR(50) NOT NULL,
 
     CONSTRAINT ck_participante CHECK(Cod_Participante > 0),
@@ -56,16 +74,18 @@ CREATE TABLE ParticipanteEquipeApoio (
 );
 
 CREATE TABLE DoadoresCampanha (
-    Cod_Doador INT PRIMARY KEY,
+    Cod_Doador INTEGER PRIMARY KEY,
+    valor NUMERIC(8, 2) NOT NULL,
     Estado_Ficha VARCHAR(50) NOT NULL,
     Tipo_Doador VARCHAR(50) NOT NULL CHECK (UPPER(Tipo_Doador) IN ('FÍSICO', 'JURÍDICO')),
 
-    CONSTRAINT ck_doador CHECK(Cod_Doador > 0)
+    CONSTRAINT ck_doador CHECK(Cod_Doador > 0),
+    CONSTRAINT ck_valor CHECK(valor > 0)
 );
 
 CREATE TABLE ProcessoJudicial (
-    Cod_Processo INT PRIMARY KEY,
-    Cod_Individuo INT NOT NULL,
+    Cod_Processo INTEGER PRIMARY KEY,
+    Cod_Individuo INTEGER NOT NULL,
     Data_Termino DATE,
     Procedencia VARCHAR(50),
 
@@ -73,13 +93,14 @@ CREATE TABLE ProcessoJudicial (
 );
 
 CREATE TABLE DoadorFisico (
-    Cod_Doador INT PRIMARY KEY,
-    CPF VARCHAR(11) UNIQUE NOT NULL,
+    Cod_Doador INTEGER PRIMARY KEY,
+    CPF VARCHAR(11) NOT NULL,
+    quantDoacoes INTEGER DEFAULT 0,
     FOREIGN KEY (Cod_Doador) REFERENCES DoadoresCampanha(Cod_Doador) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE DoadorJuridico (
-    Cod_Doador INT PRIMARY KEY,
+    Cod_Doador INTEGER PRIMARY KEY,
     CNPJ VARCHAR(14) UNIQUE NOT NULL,
     FOREIGN KEY (Cod_Doador) REFERENCES DoadoresCampanha(Cod_Doador) ON DELETE CASCADE ON UPDATE CASCADE
 );

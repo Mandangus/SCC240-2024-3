@@ -1,79 +1,89 @@
+INSERT INTO PARTIDO (cod_partido, nome) VALUES
+(1, 'Partido do Futuro'),
+(2, 'Partido da Justiça'),
+(3, 'Partido Verde'),
+(4, 'Partido Trabalhista'),
+(5, 'Partido Social'),
+(6, 'Partido Liberal');
+
+INSERT INTO programasDePartido (cod_partido, programa) VALUES
+(1, 'Programa de educação para todos'),
+(2, 'Programa de combate à corrupção'),
+(3, 'Programa de preservação ambiental'),
+(4, 'Programa de direitos trabalhistas'),
+(5, 'Programa de inclusão social'),
+(6, 'Programa de economia de mercado');
+
 INSERT INTO Pleito (Cod_Pleito, Qtd_Votos) VALUES
-(1, 10000),
-(2, 15000);
+(1, 5000),
+(2, 7500),
+(3, 10000),
+(4, 15000),
+(5, 20000),
+(6, 25000);
 
-INSERT INTO Candidato (Cod_Candidato, Partido, Estado_Ficha) VALUES
-(1, 'Partido A', 'Limpa'),
-(2, 'Partido B', 'Suja'),
-(3, 'Partido C', 'Limpa'),
-(4, 'Partido D', 'Limpa'),
-(5, 'Partido E', 'Suja'),
-(6, 'Partido F', 'Limpa'),
-(7, 'Partido G', 'Limpa'),
-(8, 'Partido H', 'Suja');
+INSERT INTO Candidato (Cod_Candidato, nome, Partido, Estado_Ficha) VALUES
+(1, 'João Silva', 1, 'Apto'),
+(2, 'Maria Souza', 2, 'Apto'),
+(3, 'Pedro Costa', 3, 'Inapto'),
+(4, 'Ana Lima', 4, 'Apto'),
+(5, 'Carlos Mendes', 5, 'Apto'),
+(6, 'Lucas Araújo', 6, 'Apto');
 
-INSERT INTO Cargo (Cod_Cargo, Localidade, Qtd_Eleitos) VALUES
-(1, 'Localidade A', 1),
-(2, 'Localidade B', 2),
-(3, 'Localidade C', 1),
-(4, 'Localidade D', 3),
-(5, 'Localidade E', 2);
+INSERT INTO Cargo (Cod_Cargo, nome, Localidade, Qtd_Eleitos) VALUES
+(1, 'Vereador', 'São Paulo', 5),
+(2, 'Ministro', 'Rio de Janeiro', 3),
+(3, 'Deputado', 'Minas Gerais', 4),
+(4, 'Prefeito', 'Bahia', 2),
+(5, 'Vice Prefeito', 'Paraná', 3),
+(6, 'Suplente', 'Rio Grande do Sul', 1);
 
-INSERT INTO Candidatura (Cod_Candidatura, Cod_Candidato, Cod_Cargo, Ano, Pleito, Eleito) VALUES
-(1, 1, 1, 2024, 1, TRUE),
-(2, 2, 1, 2024, 1, FALSE),
-(3, 3, 2, 2024, 2, TRUE),
-(4, 4, 2, 2024, 2, FALSE),
-(5, 5, 3, 2024, 2, FALSE),
-(6, 6, 3, 2024, 1, TRUE),
-(7, 7, 4, 2024, 1, FALSE),
-(8, 8, 5, 2024, 2, TRUE);
+INSERT INTO Candidatura (Cod_Candidatura, Cod_Candidato, Cod_Cargo, Ano, Pleito, Cod_Candidatura_Vice, Eleito) VALUES
+(1, 1, 1, 2020, 1, NULL, TRUE),
+(2, 2, 2, 2020, 2, NULL, FALSE),
+(3, 3, 3, 2018, 3, NULL, TRUE),
+(4, 4, 4, 2018, 4, NULL, FALSE),
+(5, 5, 5, 2016, 5, NULL, TRUE),
+(6, 6, 6, 2016, 6, NULL, FALSE);
 
-INSERT INTO EquipeApoio (Cod_Equipe) VALUES
-(1),
-(2),
-(3),
-(4),
-(5);
+INSERT INTO EquipeApoio (Cod_Equipe, nomeEquipe) VALUES
+(1, 'Equipe A'),
+(2, 'Equipe B'),
+(3, 'Equipe C'),
+(4, 'Equipe D'),
+(5, 'Equipe E'),
+(6, 'Equipe F');
 
 INSERT INTO ParticipanteEquipeApoio (Cod_Participante, Cod_Equipe, Ano, Estado_Ficha) VALUES
-(1, 1, 2024, 'Limpa'),
-(2, 1, 2024, 'Limpa'),
-(3, 2, 2024, 'Suja'),
-(4, 2, 2024, 'Limpa'),
-(5, 3, 2024, 'Suja'),
-(6, 4, 2024, 'Limpa'),
-(7, 4, 2024, 'Limpa'),
-(8, 5, 2024, 'Suja');
+(1, 1, 2020, 'Limpa'),
+(2, 2, 2019, 'Limpa'),
+(3, 3, 2018, 'Suja'),
+(4, 4, 2017, 'Limpa'),
+(5, 5, 2016, 'Limpa'),
+(6, 6, 2015, 'Suja');
 
-INSERT INTO DoadoresCampanha (Cod_Doador, Estado_Ficha, Tipo_Doador) VALUES
-(1, 'Limpa', 'Físico'),
-(2, 'Limpa', 'Jurídico'),
-(3, 'Suja', 'Físico'),
-(4, 'Limpa', 'Jurídico'),
-(5, 'Limpa', 'Físico'),
-(6, 'Suja', 'Jurídico'),
-(7, 'Limpa', 'Físico'),
-(8, 'Limpa', 'Jurídico');
+INSERT INTO DoadoresCampanha (Cod_Doador, valor, Estado_Ficha, Tipo_Doador) VALUES
+(1, 1000.00, 'Limpa', 'FÍSICO'),
+(2, 2000.00, 'Limpa', 'JURÍDICO'),
+(3, 3000.00, 'Suja', 'FÍSICO'),
+(4, 4000.00, 'Limpa', 'JURÍDICO'),
+(5, 5000.00, 'Limpa', 'FÍSICO'),
+(6, 6000.00, 'Suja', 'JURÍDICO');
 
 INSERT INTO ProcessoJudicial (Cod_Processo, Cod_Individuo, Data_Termino, Procedencia) VALUES
-(1, 1, '2023-05-20', 'Procedente'),
-(2, 2, '2023-05-21', 'Improcedente'),
-(3, 3, '2023-05-22', 'Procedente'),
-(4, 4, '2023-05-23', 'Improcedente'),
-(5, 5, '2023-05-24', 'Procedente'),
-(6, 6, '2023-05-25', 'Improcedente'),
-(7, 7, '2023-05-26', 'Procedente'),
-(8, 8, '2023-05-27', 'Improcedente');
+(1, 1, '2021-05-20', 'Procedente'),
+(2, 2, '2020-08-15', 'Improcedente'),
+(3, 3, '2019-11-30', 'Procedente'),
+(4, 4, '2018-04-25', 'Improcedente'),
+(5, 5, '2017-07-10', 'Procedente'),
+(6, 6, '2016-03-05', 'Improcedente');
 
-INSERT INTO DoadorFisico (Cod_Doador, CPF) VALUES
-(1, '12345678901'),
-(3, '12345678902'),
-(5, '12345678903'),
-(7, '12345678904');
+INSERT INTO DoadorFisico (Cod_Doador, CPF, quantDoacoes) VALUES
+(1, '12345678901',1),
+(3, '23456789012',1),
+(5, '34567890123',1);
 
 INSERT INTO DoadorJuridico (Cod_Doador, CNPJ) VALUES
-(2, '12345678000190'),
-(4, '12345678000290'),
-(6, '12345678000390'),
-(8, '12345678000490');
+(2, '12345678000101'),
+(4, '23456789000102'),
+(6, '34567890000103');

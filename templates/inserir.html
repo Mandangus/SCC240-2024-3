@@ -17,6 +17,40 @@
             }
         }
     </script>
+        <script>
+            function toggleDoadorFields() {
+                var tipoDoador = document.getElementById("tipo_doador").value;
+                var cpfField = document.getElementById("cpf_field");
+                var cnpjField = document.getElementById("cnpj_field");
+    
+                if (tipoDoador == "Físico") {
+                    cpfField.style.display = "block";
+                    cnpjField.style.display = "none";
+                } else if (tipoDoador == "Jurídico") {
+                    cpfField.style.display = "block";
+                    cnpjField.style.display = "none";
+                } else {
+                    cpfField.style.display = "none";
+                    cnpjField.style.display = "none";
+                }
+            }
+            function toggleDoadorFields() {
+            var tipoDoador = document.getElementById("tipo_doador").value;
+            var cpfField = document.getElementById("cpf_field");
+            var cnpjField = document.getElementById("cnpj_field");
+
+            if (tipoDoador === "Físico") {
+                cpfField.style.display = "block";
+                cnpjField.style.display = "none";
+            } else if (tipoDoador === "Jurídico") {
+                cnpjField.style.display = "block";
+                cpfField.style.display = "none";
+            } else {
+                cpfField.style.display = "none";
+                cnpjField.style.display = "none";
+            }
+        }
+        </script>
 </head>
 <body>
     <header>
@@ -27,8 +61,8 @@
                 <li><a href="/candidaturas/eleitos">Relatório de Candidatos Eleitos</a></li>
                 <li><a href="/candidatos/ficha-limpa">Listar Candidatos Ficha Limpa</a></li>
                 <li><a href="/delete">Remover Entidade</a></li>
-                <li><a href="/doacoes">Doações</a></li>
                 <li><a href="/inserir">Inserir dados</a></li>
+                <li><a href="/">Página Principal</a></li>
             </ul>
         </nav>
     </header>
@@ -45,6 +79,8 @@
                 <option value="participanteequipeapoio">Participante da Equipe de Apoio</option>
                 <option value="doadorescampanha">Doador de Campanha</option>
                 <option value="processojudicial">Processo Judicial</option>
+                <option value="partido">Partido</option>
+                <option value="programaPartido">Programa de partido</option>
             </select>
             
             <!-- Campos para Pleito -->
@@ -54,7 +90,23 @@
                 <label for="qtdVotos">Quantidade de Votos:</label>
                 <input type="text" id="qtdVotos" name="qtdVotos">
             </div>
-            
+
+            <!-- Campos para Partido -->
+            <div id="partido-fields" class="entity-fields" style="display:none;">
+                <label for="cod_partido">ID do partido:</label>
+                <input type="text" id="cod_partido" name="cod_partido">
+                <label for="nome">Nome do partido:</label>
+                <input type="text" id="nome" name="nome">
+            </div>
+
+            <!-- Campos para Programas de Partido -->
+            <div id="programaPartido-fields" class="entity-fields" style="display:none;">
+                <label for="cod_programaPartido">ID do partido:</label>
+                <input type="text" id="cod_programaPartido" name="cod_programaPartido">
+                <label for="programa">Programa do partido:</label>
+                <input type="text" id="programa" name="programa">
+            </div>
+                         
             <!-- Campos para Candidatura -->
             <div id="candidatura-fields" class="entity-fields" style="display:none;">
                 <label for="cod_candidatura">Código Candidatura:</label>
@@ -71,8 +123,8 @@
             
             <!-- Campos para Candidato -->
             <div id="candidato-fields" class="entity-fields" style="display:none;">
-                <label for="cod_candidato">Código Candidato:</label>
-                <input type="text" id="cod_candidato" name="cod_candidato">
+                <label for="codigo_candidato">Código Candidato:</label>
+                <input type="text" id="codigo_candidato" name="codigo_candidato">
                 <label for="nome">Nome:</label>
                 <input type="text" id="nome" name="nome">
                 <label for="partido">Partido:</label>
@@ -86,7 +138,7 @@
                 <input type="number" id="cod_Cargo" name="cod_Cargo">
                 <label for="localidade">Localização do Cargo:</label>
                 <input type="text" id="localidade" name="localidade">
-                <label for="qtd_Eleitos">Quantidade de Eleitos:</label>
+                <label for="qtd_EleitfValoros">Quantidade de Eleitos:</label>
                 <input type="number" id="qtd_Eleitos" name="qtd_Eleitos">
             </div>
             
@@ -94,42 +146,54 @@
             <div id="equipeapoio-fields" class="entity-fields" style="display:none;">
                 <label for="cod_equipe">Código Equipe:</label>
                 <input type="text" id="cod_equipe" name="cod_equipe">
-                <label for="nome">Nome:</label>
-                <input type="text" id="nome" name="nome">
-                <label for="funcao">Função:</label>
-                <input type="text" id="funcao" name="funcao">
             </div>
             
             <!-- Campos para Participante da Equipe de Apoio -->
             <div id="participanteequipeapoio-fields" class="entity-fields" style="display:none;">
                 <label for="cod_participante">Código Participante:</label>
                 <input type="text" id="cod_participante" name="cod_participante">
-                <label for="cod_equipe">Código Equipe:</label>
-                <input type="text" id="cod_equipe" name="cod_equipe">
-                <label for="nome">Nome:</label>
-                <input type="text" id="nome" name="nome">
+                <label for="cod_Equipe">Código Equipe:</label>
+                <input type="text" id="cod_Equipe" name="cod_Equipe">
+                <label for="Ano">Ano:</label>
+                <input type="text" id="Ano" name="Ano">
+                <label for="estado_Ficha">Ficha:</label>
+                <input type="text" id="estado_Ficha" name="estado_Ficha">
             </div>
             
             <!-- Campos para Doador de Campanha -->
             <div id="doadorescampanha-fields" class="entity-fields" style="display:none;">
                 <label for="cod_doador">Código Doador:</label>
                 <input type="text" id="cod_doador" name="cod_doador">
-                <label for="tipo_doador">Tipo de Doador:</label>
-                <input type="text" id="tipo_doador" name="tipo_doador">
-                <label for="valor">Valor:</label>
+                <label for="valor">Valor da doação:</label>
                 <input type="text" id="valor" name="valor">
+                <label for="estado_ficha">Ficha:</label>
+                <input type="text" id="estado_ficha" name="estado_ficha">
+                <label for="tipo_doador">Tipo de Doador:</label>
+                <select id="tipo_doador" name="tipo_doador" onchange="toggleDoadorFields()">
+                    <option value="">Selecione</option>
+                    <option value="Físico">Físico</option>
+                    <option value="Jurídico">Jurídico</option>
+                </select>
+                <div id="cpf_field" style="display:none;">
+                    <label for="cpf">CPF:</label>
+                    <input type="text" id="cpf" name="cpf">
+                </div>
+                <div id="cnpj_field" style="display:none;">
+                    <label for="cnpj">CNPJ:</label>
+                    <input type="text" id="cnpj" name="cnpj">
+                </div>
             </div>
             
             <!-- Campos para Processo Judicial -->
             <div id="processojudicial-fields" class="entity-fields" style="display:none;">
-                <label for="cod_processo">Código Processo:</label>
-                <input type="text" id="cod_processo" name="cod_processo">
-                <label for="qtd_votos">Descrição:</label>
-                <input type="text" id="qtd_votos" name="qtd_votos">
-                <label for="data_inicio">Data de Início:</label>
-                <input type="text" id="data_inicio" name="data_inicio">
-                <label for="data_fim">Data de Fim:</label>
-                <input type="text" id="data_fim" name="data_fim">
+                <label for="codigo_processo">Código Processo:</label>
+                <input type="text" id="codigo_processo" name="codigo_processo">
+                <label for="codigo_individuo">Código do Indivíduo:</label>
+                <input type="text" id="codigo_individuo" name="codigo_individuo">
+                <label for="data_termino">Data de Término:</label>
+                <input type="text" id="data_termino" name="data_termino">
+                <label for="procedencia">Procedência:</label>
+                <input type="text" id="procedencia" name="procedencia">
             </div>
             
             <button type="submit">Inserir Dados</button>

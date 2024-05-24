@@ -1,4 +1,5 @@
 import psycopg2
+from psycopg2 import sql, Error
 from flask import Flask, request, jsonify, render_template
 from dotenv import load_dotenv
 from os import getenv
@@ -7,14 +8,18 @@ app = Flask(__name__)
 load_dotenv()
 
 def get_db_connection():
-    conn = psycopg2.connect(
-        dbname=getenv("DB_NAME"),
-        user=getenv("USER"),
-        password=getenv("PSSWD"),
-        host=getenv("HOST"),
-        port=getenv("PORT")
-    )
-    return conn
+    try:
+        conn = psycopg2.connect(
+            dbname=getenv("DB_NAME"),
+            user=getenv("USER"),
+            password=getenv("PSSWD"),
+            host=getenv("HOST"),
+            port=getenv("PORT")
+        )
+        return conn
+    except Error as e:
+        print(f"Error connecting to the database: {e}")
+        return None
 
 @app.route('/')
 def index():
@@ -28,9 +33,12 @@ def get_candidaturas():
     order_by = request.args.get('order_by', 'Ano')
     order_dir = request.args.get('order_dir', 'ASC')
 
-    query = "SELECT Candidatura.*, Candidato.Partido, Cargo.Localidade FROM Candidatura " \
-            "JOIN Candidato ON Candidatura.Cod_Candidato = Candidato.Cod_Candidato " \
-            "JOIN Cargo ON Candidatura.Cod_Cargo = Cargo.Cod_Cargo"
+    query = """
+    SELECT Candidatura.*, Candidato.Partido, Cargo.Localidade 
+    FROM Candidatura 
+    JOIN Candidato ON Candidatura.Cod_Candidato = Candidato.Cod_Candidato 
+    JOIN Cargo ON Candidatura.Cod_Cargo = Cargo.Cod_Cargo
+    """
     filters = []
     params = []
 
@@ -50,11 +58,19 @@ def get_candidaturas():
     query += f" ORDER BY {order_by} {order_dir}"
 
     conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(query, tuple(params))
-    candidaturas = cursor.fetchall()
-    cursor.close()
-    conn.close()
+    if conn is None:
+        return jsonify({'error': 'Database connection failed'}), 500
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute(query, tuple(params))
+        candidaturas = cursor.fetchall()
+        cursor.close()
+        conn.close()
+    except Error as e:
+        if conn:
+            conn.close()
+        return jsonify({'error': str(e)}), 500
 
     result = []
     for candidatura in candidaturas:
@@ -82,7 +98,7 @@ def get_eleitos():
         LEFT JOIN Candidatura AS Vice ON Candidatura.Cod_Candidatura_Vice = Vice.Cod_Candidatura
     WHERE Candidatura.Eleito = TRUE
     """
-    
+
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute(query)
@@ -111,11 +127,19 @@ def get_ficha_limpa():
     query = "SELECT * FROM Candidato WHERE Estado_Ficha = 'Limpa'"
     
     conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(query)
-    candidatos = cursor.fetchall()
-    cursor.close()
-    conn.close()
+    if conn is None:
+        return jsonify({'error': 'Database connection failed'}), 500
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute(query)
+        candidatos = cursor.fetchall()
+        cursor.close()
+        conn.close()
+    except Error as e:
+        if conn:
+            conn.close()
+        return jsonify({'error': str(e)}), 500
 
     result = []
     for candidato in candidatos:
@@ -144,10 +168,6 @@ def delete_entity():
             'processojudicial': 'ProcessoJudicial'
         }
 
-        table = table_mapping.get(entity.lower())
-        if not table:
-            return jsonify({'error': 'Invalid entity'}), 400
-
         id_column_mapping = {
             'pleito': 'Cod_Pleito',
             'candidatura': 'Cod_Candidatura',
@@ -160,8 +180,12 @@ def delete_entity():
         }
 
         id_column = id_column_mapping.get(entity.lower())
-
-        query = f"DELETE FROM {table} WHERE {id_column} = %s"
+        table = table_mapping.get(entity.lower())
+        query = sql.SQL("DELETE FROM {table} WHERE {id_column} = %s").format(
+            table=sql.Identifier(table),
+            id_column=sql.Identifier(id_column)
+        )
+        
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute(query, (id,))
@@ -177,30 +201,43 @@ def inserir():
     if request.method == 'POST':
         entity = request.form['entity']
         conn = get_db_connection()
+
         cursor = conn.cursor()
         
         if entity == 'pleito':
-            codigo_pleito = request.form['cod_Pleito']
-            qtd_votos = request.form['qtd_votos']
-            query = "INSERT INTO pleito (codigo_pleito, qtd_votos) VALUES (%s, %s)"
-            cursor.execute(query, (codigo_pleito, qtd_votos))
+            cod_pleito = request.form['Cod_Pleito']
+            qtd_votos = request.form['qtdVotos']
+            query = "INSERT INTO pleito (cod_pleito, qtd_votos) VALUES (%s, %s)"
+            cursor.execute(query, (cod_pleito, qtd_votos))
+
+        elif entity == 'partido':
+            cod_partido = request.form['cod_partido']
+            nome = request.form['nome']
+            query = "INSERT INTO partido (cod_partido, nome) VALUES (%s, %s)"
+            cursor.execute(query, (cod_partido, nome))
+        
+        elif entity == 'programaPartido':
+            cod_partido = request.form['cod_programaPartido']
+            programa = request.form['programa']
+            query = "INSERT INTO programasDePartido (cod_partido, programa) VALUES (%s, %s)"
+            cursor.execute(query, (cod_partido, programa))
         
         elif entity == 'candidatura':
-            codigo_candidatura = request.form['codigo_candidatura']
-            codigo_candidato = request.form['codigo_candidato']
-            codigo_cargo = request.form['codigo_cargo']
+            codigo_candidatura = request.form['cod_candidatura']
+            codigo_candidato = request.form['cod_candidato']
+            codigo_cargo = request.form['cod_cargo']
             ano = request.form['ano']
             pleito = request.form['pleito']
-            query = "INSERT INTO candidatura (codigo_candidatura, codigo_candidato, codigo_cargo, ano, pleito) VALUES (%s, %s, %s, %s, %s)"
+            query = "INSERT INTO candidatura (cod_candidatura, cod_candidato, cod_cargo, ano, pleito) VALUES (%s, %s, %s, %s, %s)"
             cursor.execute(query, (codigo_candidatura, codigo_candidato, codigo_cargo, ano, pleito))
         
         elif entity == 'candidato':
-            codigo_candidato = request.form['codigo_candidato']
+            cod_candidato = request.form['codigo_candidato']
             nome = request.form['nome']
             partido = request.form['partido']
             estado_ficha = request.form['estado_ficha']
-            query = "INSERT INTO candidato (codigo_candidato, nome, partido, estado_ficha) VALUES (%s, %s, %s, %s)"
-            cursor.execute(query, (codigo_candidato, nome, partido, estado_ficha))
+            query = "INSERT INTO candidato (cod_candidato, nome, partido, estado_ficha) VALUES (%s, %s, %s, %s)"
+            cursor.execute(query, (cod_candidato, nome, partido, estado_ficha))
         
         elif entity == 'cargo':
             codigo_cargo = request.form['cod_Cargo']
@@ -210,33 +247,55 @@ def inserir():
             cursor.execute(query, (codigo_cargo, localizacao, qtd_eleitos))
         
         elif entity == 'equipeapoio':
-            codigo_equipe = request.form['codigo_equipe']
-            nome = request.form['nome']
-            funcao = request.form['funcao']
-            query = "INSERT INTO equipeapoio (codigo_equipe, nome, funcao) VALUES (%s, %s, %s)"
-            cursor.execute(query, (codigo_equipe, nome, funcao))
+            codigo_equipe = request.form['cod_equipe']
+            query = "INSERT INTO equipeapoio (cod_equipe) VALUES (%s)"
+            cursor.execute(query, (codigo_equipe,))
         
         elif entity == 'participanteequipeapoio':
-            codigo_participante = request.form['codigo_participante']
-            codigo_equipe = request.form['codigo_equipe']
-            nome = request.form['nome']
-            query = "INSERT INTO participanteequipeapoio (codigo_participante, codigo_equipe, nome) VALUES (%s, %s, %s)"
-            cursor.execute(query, (codigo_participante, codigo_equipe, nome))
+            codigo_participante = request.form['cod_participante']
+            codigo_equipe = request.form['cod_Equipe']
+            ano = request.form['Ano']
+            ficha = request.form['estado_Ficha']
+            query = "INSERT INTO participanteequipeapoio (cod_participante, cod_equipe, ano, estado_ficha) VALUES (%s, %s, %s, %s)"
+            cursor.execute(query, (codigo_participante, codigo_equipe, ano, ficha))
         
         elif entity == 'doadorescampanha':
-            codigo_doador = request.form['codigo_doador']
-            tipo_doador = request.form['tipo_doador']
+            codigo_doador = request.form['cod_doador']
             valor = request.form['valor']
-            query = "INSERT INTO doadorescampanha (codigo_doador, tipo_doador, valor) VALUES (%s, %s, %s)"
-            cursor.execute(query, (codigo_doador, tipo_doador, valor))
+            tipo_doador = request.form['tipo_doador']
+            ficha = request.form['estado_ficha']
+            cpf = request.form['cpf']
+            cnpj = request.form['cnpj']
+
+            query = "INSERT INTO doadorescampanha (cod_doador, valor, estado_ficha, tipo_doador) VALUES (%s, %s, %s, %s)"
+            cursor.execute(query, (codigo_doador, valor, ficha, tipo_doador))
+
+            cursor.execute("SELECT 1 FROM doadorfisico WHERE cod_doador = %s", (codigo_doador,))
+            doador_existente_f = cursor.fetchone()
+
+            cursor.execute("SELECT 1 FROM doadorjuridico WHERE cod_doador = %s", (codigo_doador,))
+            doador_existente_j = cursor.fetchone()
+
+            if not doador_existente_f and tipo_doador == 'Físico':
+                query = "INSERT INTO doadorfisico (cod_doador, cpf, quantDoacoes) VALUES (%s, %s, %s)"
+                cursor.execute(query, (codigo_doador, cpf, 1))
+            elif doador_existente_f and tipo_doador == 'Físico':
+                cursor.execute("SELECT quantDoacoes FROM doadorfisico WHERE cod_doador = %s", (codigo_doador,))
+                count = cursor.fetchone()
+                query = f"UPDATE doadorfisico SET quantDoacoes={count+1} WHERE cod_doador=%s"
+                cursor.execute(query, (codigo_doador, cpf))
+            elif  not doador_existente_j and tipo_doador == 'Jurídico':
+                query = "INSERT INTO doadorjuridico (cod_doador, cnpj) VALUES (%s, %s)"
+                cursor.execute(query, (codigo_doador, cnpj))
+
         
         elif entity == 'processojudicial':
             codigo_processo = request.form['codigo_processo']
-            descricao = request.form['descricao']
-            data_inicio = request.form['data_inicio']
-            data_fim = request.form['data_fim']
-            query = "INSERT INTO processojudicial (codigo_processo, descricao, data_inicio, data_fim) VALUES (%s, %s, %s, %s)"
-            cursor.execute(query, (codigo_processo, descricao, data_inicio, data_fim))
+            codigo_individuo = request.form['codigo_individuo']
+            data_fim = request.form['data_termino']
+            procedencia = request.form['procedencia']
+            query = "INSERT INTO processojudicial (cod_processo, cod_individuo, data_termino, procedencia) VALUES (%s, %s, %s, %s)"
+            cursor.execute(query, (codigo_processo, codigo_individuo, data_fim, procedencia))
         
         conn.commit()
         cursor.close()
@@ -246,28 +305,6 @@ def inserir():
         return render_template('inserir.html', message=message)
     
     return render_template('inserir.html')
-
-@app.route('/doacoes', methods=['GET', 'POST'])
-def doacoes():
-    if request.method == 'POST':
-        cod_doador = request.form['cod_doador']
-        tipo_doador = request.form['tipo_doador']
-        valor = request.form['valor']
-        
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        query = "INSERT INTO DoadoresCampanha (Cod_Doador, Tipo_Doador, Valor) VALUES (%s, %s, %s)"
-        cursor.execute(query, (cod_doador, tipo_doador, valor))
-        
-        conn.commit()
-        cursor.close()
-        conn.close()
-        
-        message = "Doação registrada com sucesso!"
-        return render_template('doacoes.html', message=message)
-    
-    return render_template('doacoes.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
