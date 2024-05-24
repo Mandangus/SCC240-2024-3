@@ -77,7 +77,7 @@ CREATE TABLE DoadoresCampanha (
     Cod_Doador INTEGER PRIMARY KEY,
     valor NUMERIC(8, 2) NOT NULL,
     Estado_Ficha VARCHAR(50) NOT NULL,
-    Tipo_Doador VARCHAR(50) NOT NULL CHECK (UPPER(Tipo_Doador) IN ('FÍSICO', 'JURÍDICO')),
+    Tipo_Doador VARCHAR(50) NOT NULL CHECK (UPPER(Tipo_Doador) IN ('Físico', 'Jurídico')),
 
     CONSTRAINT ck_doador CHECK(Cod_Doador > 0),
     CONSTRAINT ck_valor CHECK(valor > 0)
@@ -105,6 +105,11 @@ CREATE TABLE DoadorJuridico (
     FOREIGN KEY (Cod_Doador) REFERENCES DoadoresCampanha(Cod_Doador) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+CREATE TABLE Doa(
+    cod_doador INTEGER PRIMARY KEY,
+    quantDoacoes INTEGER DEFAULT 1
+)
+
 CREATE OR REPLACE FUNCTION check_valid_candidatura() RETURNS TRIGGER AS $$
 BEGIN
     IF NEW.Cod_Candidatura_Vice IS NOT NULL AND
@@ -119,16 +124,33 @@ CREATE TRIGGER trigger_valid_candidatura
 BEFORE INSERT OR UPDATE ON Candidatura
 FOR EACH ROW EXECUTE FUNCTION check_valid_candidatura();
 
+
 CREATE OR REPLACE FUNCTION check_donation_type() RETURNS TRIGGER AS $$
 BEGIN
-    IF UPPER(NEW.Tipo_Doador) = 'JURÍDICO' AND
-       (SELECT COUNT(*) FROM DoadoresCampanha WHERE Cod_Doador = NEW.Cod_Doador) > 1 THEN
-        RAISE EXCEPTION 'Corporate donors can only donate once per candidatura';
+    -- Verifica se o cod_doador já existe na tabela Doa
+    IF EXISTS (SELECT 1 FROM Doa WHERE cod_doador = NEW.Cod_Doador) THEN
+        -- Se o doador existir e for do tipo 'Jurídico', lança uma exceção
+        IF UPPER(NEW.Tipo_Doador) = 'JURÍDICO' THEN
+            RAISE EXCEPTION 'Corporate donors can only donate once per candidatura';
+        -- Se o doador existir e for do tipo 'Físico', atualiza a quantidade de doações
+        ELSIF UPPER(NEW.Tipo_Doador) = 'FÍSICO' THEN
+            UPDATE Doa SET quantDoacoes = quantDoacoes + 1 WHERE cod_doador = NEW.Cod_Doador;
+            RETURN NULL; -- Impede a inserção na tabela DoadoresCampanha
+        END IF;
+    ELSE
+        -- Se o doador não existir
+        IF UPPER(NEW.Tipo_Doador) = 'JURÍDICO' THEN
+            INSERT INTO Doa (cod_doador, quantDoacoes) VALUES (NEW.Cod_Doador, 1);
+        ELSIF UPPER(NEW.Tipo_Doador) = 'FÍSICO' THEN
+            INSERT INTO Doa (cod_doador, quantDoacoes) VALUES (NEW.Cod_Doador, 1);
+        END IF;
+        RETURN NEW; -- Permite a inserção na tabela DoadoresCampanha
     END IF;
-    RETURN NEW;
+
+    RETURN NULL; -- Impede a inserção na tabela DoadoresCampanha para doadores físicos já existentes
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_donation_type
+CREATE TRIGGER trigger_donation_type 
 BEFORE INSERT OR UPDATE ON DoadoresCampanha
 FOR EACH ROW EXECUTE FUNCTION check_donation_type();

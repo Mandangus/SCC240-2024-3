@@ -277,18 +277,17 @@ def inserir():
             doador_existente_j = cursor.fetchone()
 
             if not doador_existente_f and tipo_doador == 'Físico':
-                query = "INSERT INTO doadorfisico (cod_doador, cpf, quantDoacoes) VALUES (%s, %s, %s)"
-                cursor.execute(query, (codigo_doador, cpf, 1))
-            elif doador_existente_f and tipo_doador == 'Físico':
-                cursor.execute("SELECT quantDoacoes FROM doadorfisico WHERE cod_doador = %s", (codigo_doador,))
-                count = cursor.fetchone()
-                query = f"UPDATE doadorfisico SET quantDoacoes={count+1} WHERE cod_doador=%s"
+                query = "INSERT INTO doadorfisico (cod_doador, cpf) VALUES (%s, %s)"
                 cursor.execute(query, (codigo_doador, cpf))
-            elif  not doador_existente_j and tipo_doador == 'Jurídico':
+            elif doador_existente_f and tipo_doador == 'Físico':
+                cursor.execute("SELECT quantDoacoes FROM doa WHERE cod_doador = %s", (codigo_doador,))
+                count = cursor.fetchone()
+                query = f"UPDATE doa SET quantDoacoes={count+1} WHERE cod_doador=%s"
+                cursor.execute(query, (codigo_doador, cpf))
+            elif not doador_existente_j and tipo_doador == 'Jurídico':
                 query = "INSERT INTO doadorjuridico (cod_doador, cnpj) VALUES (%s, %s)"
                 cursor.execute(query, (codigo_doador, cnpj))
 
-        
         elif entity == 'processojudicial':
             codigo_processo = request.form['codigo_processo']
             codigo_individuo = request.form['codigo_individuo']
