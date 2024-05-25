@@ -124,7 +124,7 @@ def get_eleitos():
 
 @app.route('/candidatos/ficha-limpa', methods=['GET'])
 def get_ficha_limpa():
-    query = "SELECT * FROM Candidato WHERE Estado_Ficha = 'Limpa'"
+    query = "SELECT * FROM Candidato WHERE UPPER(Estado_Ficha) = 'LIMPA'"
     
     conn = get_db_connection()
     if conn is None:
@@ -306,11 +306,12 @@ def doacoes():
         conn = get_db_connection()
         cursor = conn.cursor()
         cod_doador = request.form['cod_doador']
+        cod_candidatura = request.form['cod_candidatura']
         valor = request.form['valor']
         quantDoacoes = request.form['quantDoacoes']
         
         try:
-            cursor.execute("INSERT INTO Doa (cod_doador, valor, quantDoacoes) VALUES (%s, %s, %s)", (cod_doador, valor, quantDoacoes))
+            cursor.execute("INSERT INTO Doa (cod_doador, cod_candidatura, valor, quantDoacoes) VALUES (%s, %s, %s, %s)", (cod_doador, cod_candidatura, valor, quantDoacoes))
             conn.commit()
         except Exception as e:
             conn.rollback()
