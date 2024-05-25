@@ -13,10 +13,12 @@ CREATE TABLE Individuo(
 	CPF NUMERIC(11) PRIMARY KEY,
 	Nome VARCHAR(50) NOT NULL,
 	Ficha_Limpa BOOLEAN NOT NULL DEFAULT TRUE,
-	Cod_Equipe SERIAL,
+	Cod_Equipe SERIAL DEFAULT NULL,
 	FOREIGN KEY (Cod_Equipe) REFERENCES EquipeApoio(Cod_Equipe) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+ALTER TABLE Individuo
+ALTER COLUMN Cod_Equipe DROP NOT NULL;
 
 CREATE TABLE Cargo (
     Cod_Cargo SERIAL PRIMARY KEY,
@@ -64,6 +66,10 @@ CREATE TABLE Candidatura (
 );
 
 
+ALTER TABLE Candidatura
+ALTER COLUMN Cod_Candidatura_Vice DROP NOT NULL;
+
+
 CREATE TABLE ProcessoJudicial (
     Cod_Processo SERIAL PRIMARY KEY,
     Cod_Individuo NUMERIC(11) NOT NULL,
@@ -84,11 +90,14 @@ CREATE TABLE Empresa (
 CREATE TABLE DoacaoPF(
 	Cod_Nota SERIAL PRIMARY KEY,
 	Cod_Individuo NUMERIC(11) NOT NULL,
+	Cod_Candidatura SERIAL NOT NULL,
 	Valor DECIMAL(10,2),
 	data_doacao DATE,
 	
-	FOREIGN KEY (Cod_Individuo) REFERENCES Individuo(CPF) ON DELETE CASCADE ON UPDATE CASCADE
+	FOREIGN KEY (Cod_Individuo) REFERENCES Individuo(CPF) ON DELETE CASCADE ON UPDATE CASCADE,
+	FOREIGN KEY (Cod_Candidatura) REFERENCES Candidatura(Cod_Candidatura) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
 
 CREATE TABLE DoadorPJ(
 	Cod_Candidatura SERIAL,
@@ -102,24 +111,23 @@ CREATE TABLE DoadorPJ(
 );
 
 
-
 --atualiza a ficha limpa caso individuo tenha problemas com  justiça
 CREATE OR REPLACE FUNCTION atualizar_ficha_limpa() RETURNS TRIGGER AS $$
 BEGIN
-    IF NEW.Julgado = TRUE AND NEW.Procedente = TRUE THEN
-        UPDATE Individuo
-        SET Ficha_Limpa = FALSE
-        WHERE CPF = NEW.Cod_Individuo;
+    IF EXISTS (SELECT FROM ProcessoJudicial WHERE Cod_Individuo = NEW.CPF AND (Julgado = TRUE OR Data_Termino IS NULL)) THEN
+        UPDATE Individuo SET Ficha_Limpa = FALSE WHERE CPF = NEW.CPF;
+    ELSE
+        UPDATE Individuo SET Ficha_Limpa = TRUE WHERE CPF = NEW.CPF;
     END IF;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trg_atualizar_ficha_limpa
-AFTER UPDATE ON ProcessoJudicial
+AFTER INSERT ON ProcessoJudicial
 FOR EACH ROW
-WHEN (NEW.Julgado IS TRUE AND NEW.Procedente IS TRUE)
 EXECUTE FUNCTION atualizar_ficha_limpa();
+
 
 --verifica se o candidato é ficha limpa antes de inserir
 CREATE OR REPLACE FUNCTION verificar_ficha_limpa() RETURNS TRIGGER AS $$
@@ -151,20 +159,22 @@ CREATE TRIGGER trigger_valid_candidatura
 BEFORE INSERT OR UPDATE ON Candidatura
 FOR EACH ROW EXECUTE FUNCTION check_valid_candidatura();
 
---atribui o que foi doado ao valor total da campanha por pessoas fisicas
+
+
 CREATE OR REPLACE FUNCTION atualizar_total_doacoes_pf() RETURNS TRIGGER AS $$
 BEGIN
     UPDATE Candidatura
     SET Total_Doacoes = Total_Doacoes + NEW.Valor
-    WHERE Cod_Candidatura = (SELECT Cod_Candidatura FROM Pleito WHERE Cod_Pleito = NEW.Cod_Pleito);
+    WHERE Cod_Candidatura = NEW.Cod_Candidatura; -- Supondo que Cod_Candidatura é o campo correto
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
 CREATE TRIGGER trg_atualizar_total_doacoes_pf
 AFTER INSERT ON DoacaoPF
 FOR EACH ROW
 EXECUTE FUNCTION atualizar_total_doacoes_pf();
+
+
 
 --atribui o que foi doado ao valor total da campanha por empresas
 CREATE OR REPLACE FUNCTION atualizar_total_doacoes_pj() RETURNS TRIGGER AS $$
