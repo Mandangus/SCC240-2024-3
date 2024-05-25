@@ -1,5 +1,4 @@
 -- VERIFICADAS
-
 CREATE TABLE PARTIDO(
     cod_partido INTEGER PRIMARY KEY,
     nome VARCHAR(60) UNIQUE NOT NULL
@@ -83,6 +82,7 @@ CREATE TABLE DoadoresCampanha (
 CREATE TABLE ProcessoJudicial (
     Cod_Processo INTEGER PRIMARY KEY,
     Cod_Individuo INTEGER NOT NULL,
+    Tipo_Individuo VARCHAR(20) NOT NULL CHECK(UPPER(Tipo_Individuo) IN ('CANDIDATO', 'PARTICIPANTE EA', 'DOADOR')),
     Data_Termino DATE,
     Procedencia VARCHAR(50),
     CONSTRAINT ck_processo CHECK(Cod_Processo > 0),
@@ -110,73 +110,3 @@ CREATE TABLE Doa(
     CONSTRAINT doa_pk PRIMARY KEY(cod_doador, cod_candidatura),
     CONSTRAINT doa_fk FOREIGN KEY(cod_candidatura) REFERENCES CANDIDATURA(cod_candidatura) ON DELETE CASCADE ON UPDATE CASCADE
 );
-
-CREATE OR REPLACE FUNCTION check_valid_candidatura() RETURNS TRIGGER AS $$
-BEGIN
-    IF NEW.Cod_Candidatura_Vice IS NOT NULL AND
-       NOT EXISTS (SELECT 1 FROM Candidatura WHERE Cod_Candidatura = NEW.Cod_Candidatura_Vice) THEN
-        RAISE EXCEPTION 'Candidatura de vice é inválida';
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_valid_vice
-BEFORE INSERT OR UPDATE ON Candidatura
-FOR EACH ROW EXECUTE FUNCTION check_valid_candidatura();
-
-CREATE OR REPLACE FUNCTION check_ficha_candidato() RETURNS TRIGGER AS $$
-DECLARE ficha VARCHAR(10);
-BEGIN
-    ficha := (SELECT estado_ficha FROM CANDIDATO WHERE cod_candidato = NEW.cod_candidato);
-    IF UPPER(ficha) = 'SUJA' THEN
-        RAISE EXCEPTION 'Candidatura inválida, candidato está com o nome sujo';
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_valid_ficha
-BEFORE INSERT ON Candidatura
-FOR EACH ROW EXECUTE FUNCTION check_ficha_candidato();
-
-CREATE OR REPLACE FUNCTION check_juridico_donation()
-RETURNS TRIGGER AS $$
-DECLARE
-    tipo VARCHAR(50);
-    ano_candidatura INTEGER;
-BEGIN
-    -- Obter o tipo de doador
-    SELECT Tipo_Doador INTO tipo
-    FROM DoadoresCampanha
-    WHERE Cod_Doador = NEW.cod_doador;
-
-    -- Obter o ano da candidatura
-    SELECT Ano INTO ano_candidatura
-    FROM Candidatura
-    WHERE Cod_Candidatura = NEW.cod_candidatura;
-
-    -- Verificar se o doador é do tipo JURÍDICO
-    IF UPPER(tipo) = 'JURÍDICO' THEN
-        -- Verificar se já existe uma doação para outra candidatura no mesmo ano
-        IF EXISTS (
-            SELECT 1
-            FROM Doa d
-            JOIN Candidatura c ON d.cod_candidatura = c.Cod_Candidatura
-            WHERE d.cod_doador = NEW.cod_doador
-            AND c.Ano = ano_candidatura
-        ) THEN
-            RAISE EXCEPTION 'Doadores do tipo JURÍDICO só podem doar para uma candidatura por ano';
-		ELSIF NEW.quantDoacoes > 1 THEN
-			RAISE EXCEPTION 'Doadores do tipo JURÍDICO só podem fazer uma única doação';
-        END IF;
-    END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER check_juridico_donation_trigger
-BEFORE INSERT ON Doa
-FOR EACH ROW
-EXECUTE FUNCTION check_juridico_donation();

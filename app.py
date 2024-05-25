@@ -7,6 +7,8 @@ from os import getenv
 app = Flask(__name__)
 load_dotenv()
 
+
+### VERIFICADAS ###
 def get_db_connection():
     try:
         conn = psycopg2.connect(
@@ -24,6 +26,43 @@ def get_db_connection():
 @app.route('/')
 def index():
     return render_template('index.html')
+
+# Relatório de candidatos eleitos
+@app.route('/candidaturas/eleitos', methods=['GET'])
+def get_eleitos():
+    query = """
+    SELECT Candidatura.*, Candidato.Partido, Cargo.Localidade, Vice.Cod_Candidato AS Vice_Candidato
+    FROM Candidatura
+        JOIN Candidato ON Candidatura.Cod_Candidato = Candidato.Cod_Candidato
+        JOIN Cargo ON Candidatura.Cod_Cargo = Cargo.Cod_Cargo
+        LEFT JOIN Candidatura AS Vice ON Candidatura.Cod_Candidatura_Vice = Vice.Cod_Candidatura
+    WHERE Candidatura.Eleito = TRUE
+    """
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(query)
+    candidaturas = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    result = []
+    for candidatura in candidaturas:
+        result.append({
+            'Cod_Candidatura': candidatura[0],
+            'Cod_Candidato': candidatura[1],
+            'Cod_Cargo': candidatura[2],
+            'Ano': candidatura[3],
+            'Pleito': candidatura[4],
+            'Cod_Candidatura_Vice': candidatura[5],
+            'Eleito': candidatura[6],
+            'Partido': candidatura[7],
+            'Localidade': candidatura[8],
+            'Vice_Candidato': candidatura[9]
+        })
+    return render_template('eleitos.html', candidaturas=result)
+
+#############################################################
 
 @app.route('/candidaturas', methods=['GET'])
 def get_candidaturas():
@@ -87,41 +126,6 @@ def get_candidaturas():
         })
     return render_template('candidaturas.html', candidaturas=result)
 
-# Relatório de candidatos eleitos
-@app.route('/candidaturas/eleitos', methods=['GET'])
-def get_eleitos():
-    query = """
-    SELECT Candidatura.*, Candidato.Partido, Cargo.Localidade, Vice.Cod_Candidato AS Vice_Candidato
-    FROM Candidatura
-        JOIN Candidato ON Candidatura.Cod_Candidato = Candidato.Cod_Candidato
-        JOIN Cargo ON Candidatura.Cod_Cargo = Cargo.Cod_Cargo
-        LEFT JOIN Candidatura AS Vice ON Candidatura.Cod_Candidatura_Vice = Vice.Cod_Candidatura
-    WHERE Candidatura.Eleito = TRUE
-    """
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(query)
-    candidaturas = cursor.fetchall()
-    cursor.close()
-    conn.close()
-
-    result = []
-    for candidatura in candidaturas:
-        result.append({
-            'Cod_Candidatura': candidatura[0],
-            'Cod_Candidato': candidatura[1],
-            'Cod_Cargo': candidatura[2],
-            'Ano': candidatura[3],
-            'Pleito': candidatura[4],
-            'Cod_Candidatura_Vice': candidatura[5],
-            'Eleito': candidatura[6],
-            'Partido': candidatura[7],
-            'Localidade': candidatura[8],
-            'Vice_Candidato': candidatura[9]
-        })
-    return render_template('eleitos.html', candidaturas=result)
-
 @app.route('/candidatos/ficha-limpa', methods=['GET'])
 def get_ficha_limpa():
     query = "SELECT * FROM Candidato WHERE UPPER(Estado_Ficha) = 'LIMPA'"
@@ -158,25 +162,25 @@ def delete_entity():
         id = request.form['id']
 
         table_mapping = {
-            'pleito': 'Pleito',
-            'candidatura': 'Candidatura',
-            'candidato': 'Candidato',
-            'cargo': 'Cargo',
-            'equipeapoio': 'EquipeApoio',
-            'participanteequipeapoio': 'ParticipanteEquipeApoio',
-            'doadorescampanha': 'DoadoresCampanha',
-            'processojudicial': 'ProcessoJudicial'
+            'pleito': 'pleito',
+            'candidatura': 'candidatura',
+            'candidato': 'candidato',
+            'cargo': 'cargo',
+            'equipeapoio': 'equipeapoio',
+            'participanteequipeapoio': 'participanteequipeapoio',
+            'doadorescampanha': 'doadorescampanha',
+            'processojudicial': 'processojudicial'
         }
 
         id_column_mapping = {
-            'pleito': 'Cod_Pleito',
-            'candidatura': 'Cod_Candidatura',
-            'candidato': 'Cod_Candidato',
-            'cargo': 'Cod_Cargo',
-            'equipeapoio': 'Cod_Equipe',
-            'participanteequipeapoio': 'Cod_Participante',
-            'doadorescampanha': 'Cod_Doador',
-            'processojudicial': 'Cod_Processo'
+            'pleito': 'cod_pleito',
+            'candidatura': 'cod_candidatura',
+            'candidato': 'cod_candidato',
+            'cargo': 'cod_cargo',
+            'equipeapoio': 'cod_equipe',
+            'participanteequipeapoio': 'cod_participante',
+            'doadorescampanha': 'cod_doador',
+            'processojudicial': 'cod_processo'
         }
 
         id_column = id_column_mapping.get(entity.lower())
@@ -193,8 +197,7 @@ def delete_entity():
         cursor.close()
         conn.close()
 
-        return render_template('delete.html', message="Entity deleted successfully")
-    return render_template('delete.html')
+    return render_template('delete.html', message="Entity deleted successfully")
 
 @app.route('/inserir', methods=['GET', 'POST'])
 def inserir():
@@ -233,7 +236,7 @@ def inserir():
         
         elif entity == 'candidato':
             cod_candidato = request.form['codigo_candidato']
-            nome = request.form['nome']
+            nome = request.form['nomeCandidato']
             partido = request.form['partido']
             estado_ficha = request.form['estado_ficha']
             query = "INSERT INTO candidato (cod_candidato, nome, partido, estado_ficha) VALUES (%s, %s, %s, %s)"
@@ -241,34 +244,34 @@ def inserir():
         
         elif entity == 'cargo':
             codigo_cargo = request.form['cod_Cargo']
+            nome = request.form['nome']
             localizacao = request.form['localidade']
             qtd_eleitos = request.form['qtd_Eleitos']
-            query = "INSERT INTO cargo (cod_cargo, localidade, qtd_eleitos) VALUES (%s, %s, %s)"
-            cursor.execute(query, (codigo_cargo, localizacao, qtd_eleitos))
+            query = "INSERT INTO cargo (cod_cargo, nome, localidade, qtd_eleitos) VALUES (%s, %s, %s, %s)"
+            cursor.execute(query, (codigo_cargo, nome, localizacao, qtd_eleitos))
         
         elif entity == 'equipeapoio':
             codigo_equipe = request.form['cod_equipe']
-            query = "INSERT INTO equipeapoio (cod_equipe) VALUES (%s)"
-            cursor.execute(query, (codigo_equipe,))
+            nome_equipe = request.form['nomeEquipe']
+            query = "INSERT INTO equipeapoio (cod_equipe, nomeEquipe) VALUES (%s, %s)"
+            cursor.execute(query, (codigo_equipe, nome_equipe))
         
         elif entity == 'participanteequipeapoio':
             codigo_participante = request.form['cod_participante']
             codigo_equipe = request.form['cod_Equipe']
-            ano = request.form['Ano']
             ficha = request.form['estado_Ficha']
-            query = "INSERT INTO participanteequipeapoio (cod_participante, cod_equipe, ano, estado_ficha) VALUES (%s, %s, %s, %s)"
-            cursor.execute(query, (codigo_participante, codigo_equipe, ano, ficha))
+            query = "INSERT INTO participanteequipeapoio (cod_participante, cod_equipe, estado_ficha) VALUES (%s, %s, %s)"
+            cursor.execute(query, (codigo_participante, codigo_equipe, ficha))
         
         elif entity == 'doadorescampanha':
             codigo_doador = request.form['cod_doador']
-            valor = request.form['valor']
             tipo_doador = request.form['tipo_doador']
             ficha = request.form['estado_ficha']
             cpf = request.form['cpf']
             cnpj = request.form['cnpj']
 
-            query = "INSERT INTO doadorescampanha (cod_doador, valor, estado_ficha, tipo_doador) VALUES (%s, %s, %s, %s)"
-            cursor.execute(query, (codigo_doador, valor, ficha, tipo_doador))
+            query = "INSERT INTO doadorescampanha (cod_doador, estado_ficha, tipo_doador) VALUES (%s, %s, %s)"
+            cursor.execute(query, (codigo_doador, ficha, tipo_doador))
 
             cursor.execute("SELECT 1 FROM doadorfisico WHERE cod_doador = %s", (codigo_doador,))
             doador_existente_f = cursor.fetchone()
@@ -286,10 +289,11 @@ def inserir():
         elif entity == 'processojudicial':
             codigo_processo = request.form['codigo_processo']
             codigo_individuo = request.form['codigo_individuo']
+            tipo_individuo = request.form['individuo_t']
             data_fim = request.form['data_termino']
             procedencia = request.form['procedencia']
-            query = "INSERT INTO processojudicial (cod_processo, cod_individuo, data_termino, procedencia) VALUES (%s, %s, %s, %s)"
-            cursor.execute(query, (codigo_processo, codigo_individuo, data_fim, procedencia))
+            query = "INSERT INTO processojudicial (cod_processo, cod_individuo, tipo_individuo, data_termino, procedencia) VALUES (%s, %s, %s, %s, %s)"
+            cursor.execute(query, (codigo_processo, codigo_individuo, tipo_individuo, data_fim, procedencia))
         
         conn.commit()
         cursor.close()
