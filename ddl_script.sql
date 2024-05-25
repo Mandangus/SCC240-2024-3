@@ -22,7 +22,13 @@ CREATE TABLE Cargo (
     Cod_Cargo SERIAL PRIMARY KEY,
 	Descricao VARCHAR(50),
     Localidade VARCHAR(50),
-    Qtd_Eleitos INT NOT NULL DEFAULT 0
+    Qtd_Eleitos INT NOT NULL,
+    Pais VARCHAR(50) NOT NULL DEFAULT 'BRASIL',
+    Estado VARCHAR(50),
+    Cidade VARCHAR(50),
+
+    CHECK (Localidade IN ('MUNICIPAL','ESTADUAL','FEDERAL'))
+
 );
 
 CREATE TABLE ProgramaPartido(
@@ -173,3 +179,20 @@ CREATE TRIGGER trg_atualizar_total_doacoes_pj
 AFTER INSERT ON DoadorPJ
 FOR EACH ROW
 EXECUTE FUNCTION atualizar_total_doacoes_pj();
+
+--GARANTE QUE OS CXAMPOS DE LOCAL SJAM NOT NULL VARIANDO COM A LOCALIDADE
+CREATE OR REPLACE FUNCTION valida_localidade()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.Localidade = 'ESTADUAL' AND NEW.Estado IS NULL THEN
+        RAISE EXCEPTION 'Estado não pode ser NULL para localidade ESTADUAL';
+    ELSIF NEW.Localidade = 'MUNICIPAL' AND (NEW.Estado IS NULL OR NEW.Cidade IS NULL) THEN
+        RAISE EXCEPTION 'Estado e Cidade não podem ser NULL para localidade MUNICIPAL';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER verifica_localidade
+BEFORE INSERT OR UPDATE ON Cargo
+FOR EACH ROW
+EXECUTE FUNCTION valida_localidade();
