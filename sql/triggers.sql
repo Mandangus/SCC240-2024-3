@@ -1,17 +1,3 @@
-CREATE OR REPLACE FUNCTION check_valid_candidatura() RETURNS TRIGGER AS $$
-BEGIN
-    IF NEW.Cod_Candidatura_Vice IS NOT NULL AND
-       NOT EXISTS (SELECT 1 FROM Candidatura WHERE Cod_Candidatura = NEW.Cod_Candidatura_Vice) THEN
-        RAISE EXCEPTION 'Candidatura de vice é inválida';
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_valid_vice
-BEFORE INSERT OR UPDATE ON Candidatura
-FOR EACH ROW EXECUTE FUNCTION check_valid_candidatura();
-
 CREATE OR REPLACE FUNCTION check_ficha_candidato() RETURNS TRIGGER AS $$
 DECLARE ficha VARCHAR(10);
 BEGIN
@@ -33,19 +19,15 @@ DECLARE
     tipo VARCHAR(50);
     ano_candidatura INTEGER;
 BEGIN
-    -- Obter o tipo de doador
     SELECT Tipo_Doador INTO tipo
     FROM DoadoresCampanha
     WHERE Cod_Doador = NEW.cod_doador;
 
-    -- Obter o ano da candidatura
     SELECT Ano INTO ano_candidatura
     FROM Candidatura
     WHERE Cod_Candidatura = NEW.cod_candidatura;
 
-    -- Verificar se o doador é do tipo JURÍDICO
     IF UPPER(tipo) = 'JURÍDICO' THEN
-        -- Verificar se já existe uma doação para outra candidatura no mesmo ano
         IF EXISTS (
             SELECT 1
             FROM Doa d
@@ -73,14 +55,11 @@ RETURNS TRIGGER AS $$
 DECLARE
     ficha VARCHAR(10);
 BEGIN
-    -- Obter o estado da ficha do indivíduo
     SELECT estado_ficha INTO ficha
     FROM Candidato
     WHERE cod_candidato = NEW.Cod_Individuo;
 
-    -- Verificar se o estado da ficha é LIMPA
     IF UPPER(ficha) = 'LIMPA' THEN
-        -- Atualizar o estado da ficha para SUJA
         UPDATE Candidato
         SET estado_ficha = 'SUJA'
         WHERE cod_candidato = NEW.Cod_Individuo;
@@ -90,7 +69,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger para atualizar o estado da ficha ao cadastrar um processo
 CREATE TRIGGER update_ficha_trigger
 AFTER INSERT ON ProcessoJudicial
 FOR EACH ROW
@@ -155,3 +133,28 @@ CREATE TRIGGER check_doador_juridico
 BEFORE INSERT ON DoadorJuridico
 FOR EACH ROW
 EXECUTE FUNCTION check_doador();
+
+CREATE OR REPLACE FUNCTION check_valid_candidatura() RETURNS TRIGGER AS $$
+BEGIN
+
+    IF NEW.Cod_Candidatura_Vice IS NOT NULL AND
+       NOT EXISTS (SELECT 1 FROM Candidato WHERE Cod_Candidato = NEW.Cod_Candidatura_Vice) THEN
+        RAISE EXCEPTION 'Candidatura de vice é inválida';
+    END IF;
+
+    IF NEW.Cod_Candidatura_Vice IS NOT NULL AND
+       EXISTS (SELECT 1 FROM Candidatura WHERE Cod_Candidato = NEW.Cod_Candidatura_Vice) THEN
+        RAISE EXCEPTION 'Candidato já possui uma candidatura e não pode ser vice de outro candidato';
+    END IF;
+
+    IF NEW.Cod_Candidatura = NEW.Cod_Candidatura_Vice THEN
+        RAISE EXCEPTION 'Candidato não pode ser seu próprio vice';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_valid_vice
+BEFORE INSERT OR UPDATE ON Candidatura
+FOR EACH ROW EXECUTE FUNCTION check_valid_candidatura();
