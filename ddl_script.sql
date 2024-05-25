@@ -6,8 +6,12 @@ CREATE TABLE Pleito (
 
 CREATE TABLE EquipeApoio (
     Cod_Equipe SERIAL PRIMARY KEY,
-	Nome VARCHAR(50)
+	Cod_Candidatura SERIAL NOT NULL,
+	Nome VARCHAR(50),
+	
+	FOREIGN KEY (Cod_Candidatura) REFERENCES Candidatura(Cod_Candidatura) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
 
 CREATE TABLE Individuo(
 	CPF NUMERIC(11) PRIMARY KEY,
@@ -65,9 +69,6 @@ CREATE TABLE Candidatura (
     FOREIGN KEY (Cod_Candidatura_Vice) REFERENCES Candidatura(Cod_Candidatura) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
-
-ALTER TABLE Candidatura
-ALTER COLUMN Cod_Candidatura_Vice DROP NOT NULL;
 
 
 CREATE TABLE ProcessoJudicial (
