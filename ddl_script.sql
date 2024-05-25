@@ -66,12 +66,13 @@ CREATE TABLE Candidatura (
 
 CREATE TABLE ProcessoJudicial (
     Cod_Processo SERIAL PRIMARY KEY,
-    Cod_Individuo SERIAL NOT NULL,
+    Cod_Individuo NUMERIC(11) NOT NULL,
 	Data_Inicio DATE NOT NULL,
 	Julgado BOOLEAN NOT NULL,
     Data_Termino DATE,
     Procedente BOOLEAN,
 	
+    FOREIGN KEY (Cod_Individuo) REFERENCES Individuo(CPF) ON DELETE CASCADE ON UPDATE CASCADE,
 	CHECK (Julgado = FALSE OR (Data_Termino IS NOT NULL AND Procedente IS NOT NULL))
 );
 
