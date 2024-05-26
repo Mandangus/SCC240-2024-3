@@ -7,7 +7,6 @@ from os import getenv
 app = Flask(__name__)
 load_dotenv()
 
-# Função para conexão ao banco de dados
 def get_db_connection():
     try:
         conn = psycopg2.connect(
@@ -205,101 +204,113 @@ def delete_entity():
 
     return render_template('delete.html')
 
-# Rota para inserir dados
 @app.route('/inserir', methods=['GET', 'POST'])
 def inserir():
     if request.method == 'POST':
         entity = request.form['entity']
         conn = get_db_connection()
-
         cursor = conn.cursor()
-        
-        if entity == 'pleito':
-            cod_pleito = request.form['Cod_Pleito']
-            qtd_votos = request.form['qtdVotos']
-            query = "INSERT INTO Pleito (Cod_Pleito, Qtd_Votos) VALUES (%s, %s)"
-            cursor.execute(query, (cod_pleito, qtd_votos))
-
-        elif entity == 'partido':
-            cod_partido = request.form['cod_partido']
-            nome = request.form['nome']
-            cod_programa = request.form['cod_programa']
-            query = "INSERT INTO Partido (Cod_Partido, Nome, Cod_Programa) VALUES (%s, %s, %s)"
-            cursor.execute(query, (cod_partido, nome, cod_programa))
-        
-        elif entity == 'programapartido':
-            cod_programa = request.form['cod_programapartido']
-            descricao = request.form['descricao']
-            query = "INSERT INTO ProgramaPartido (Cod_Programa, Descricao) VALUES (%s, %s)"
-            cursor.execute(query, (cod_programa, descricao))
-        
-        elif entity == 'candidatura':
-            codigo_candidatura = request.form['cod_candidatura']
-            codigo_candidato = request.form['cod_individuo']
-            codigo_cargo = request.form['cod_cargo']
-            cod_partido = request.form['cod_Partido']
-            ano = request.form['ano']
-            cod_pleito = request.form['pleito']
-            cod_candidatura_vice = request.form['cod_candidatura_vice']
-            eleito = request.form.get('eleito', 'FALSE')
-            total_doacoes = request.form.get('total_doacoes', 0)
-            
-            query = """
-                INSERT INTO Candidatura 
-                (Cod_Candidatura, Cod_Candidato, Cod_Cargo, Cod_Partido, Ano, Cod_Pleito, Cod_Candidatura_Vice, Eleito, Total_Doacoes) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """
-            cursor.execute(query, (codigo_candidatura, codigo_candidato, codigo_cargo, cod_partido, ano, cod_pleito, cod_candidatura_vice, eleito, total_doacoes))
-        
-        elif entity == 'individuo':
-            cpf = request.form['cpf']
-            nome = request.form['nome_ind']
-            ficha_limpa = request.form.get('ficha_limpa', 'TRUE')
-            cod_equipe = request.form['partido']
-            query = "INSERT INTO Individuo (CPF, Nome, Ficha_Limpa, Cod_Equipe) VALUES (%s, %s, %s, %s)"
-            cursor.execute(query, (cpf, nome, ficha_limpa, cod_equipe))
-        
-        elif  entity == 'cargo':
-            codigo_cargo = request.form['cod_Cargo']
-            descricao = request.form['descricao']
-            localidade = request.form['localidade']
-            qtd_eleitos = request.form['qtd_Eleitos']
-            pais = request.form['pais']
-            estado = request.form.get('estado', None)
-            cidade = request.form.get('cidade', None)
-            
-            query = """
-                INSERT INTO Cargo (Cod_Cargo, Descricao, Localidade, Qtd_Eleitos, Pais, Estado, Cidade) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """
-            cursor.execute(query, (codigo_cargo, descricao, localidade, qtd_eleitos, pais, estado, cidade))
-                
-        elif entity == 'equipeapoio':
-            cod_equipe = request.form['cod_equipe']
-            nome_equipe = request.form['nomeEquipe']
-            query = "INSERT INTO EquipeApoio (Cod_Equipe, Nome) VALUES (%s, %s)"
-            cursor.execute(query, (cod_equipe, nome_equipe))
-
-        elif entity == 'processojudicial':
-            codigo_processo = request.form['codigo_processo']
-            codigo_individuo = request.form['codigo_individuo']
-            data_inicio = request.form['data_Inicio']
-            julgado = request.form.get('julgado', 'FALSE')
-            data_termino = request.form['data_termino'] if 'data_termino' in request.form else None
-            procedente = request.form.get('procedente', 'FALSE')
-            
-            query = """
-                INSERT INTO ProcessoJudicial 
-                (Cod_Processo, Cod_Individuo, Data_Inicio, Julgado, Data_Termino, Procedente) 
-                VALUES (%s, %s, %s, %s, %s, %s)
-            """
-            cursor.execute(query, (codigo_processo, codigo_individuo, data_inicio, julgado, data_termino, procedente))
-
-        conn.commit()
-        cursor.close()
-        conn.close()
-        
         message = "Dados inseridos com sucesso!"
+        
+        try:
+            if entity == 'pleito':
+                cod_pleito = request.form['Cod_Pleito']
+                qtd_votos = request.form['qtdVotos']
+                query = "INSERT INTO Pleito (Cod_Pleito, Qtd_Votos) VALUES (%s, %s)"
+                cursor.execute(query, (cod_pleito, qtd_votos))
+
+            elif entity == 'partido':
+                cod_partido = request.form['cod_partido']
+                nome = request.form['nome']
+                cod_programa = request.form['cod_programa']
+                query = "INSERT INTO Partido (Cod_Partido, Nome, Cod_Programa) VALUES (%s, %s, %s)"
+                cursor.execute(query, (cod_partido, nome, cod_programa))
+            
+            elif entity == 'programapartido':
+                cod_programa = request.form['cod_programapartido']
+                descricao = request.form['descricao']
+                query = "INSERT INTO ProgramaPartido (Cod_Programa, Descricao) VALUES (%s, %s)"
+                cursor.execute(query, (cod_programa, descricao))
+            
+            elif entity == 'candidatura':
+                codigo_candidatura = request.form['cod_candidatura']
+                codigo_candidato = request.form['cod_individuo']
+                codigo_cargo = request.form['cod_cargo']
+                cod_partido = request.form['cod_Partido']
+                ano = request.form['ano']
+                cod_pleito = request.form['pleito']
+                cod_candidatura_vice = request.form['cod_candidatura_vice']
+                eleito = request.form['eleito']
+                eleito = True if eleito == 'SIM' else False
+                total_doacoes = request.form['total_doacoes']
+                
+                if not cod_candidatura_vice:  # Se o campo estiver vazio
+                    cod_candidatura_vice = None
+                
+                if not total_doacoes:  # Se o campo estiver vazio
+                    total_doacoes = 0
+
+                query = """
+                    INSERT INTO Candidatura 
+                    (Cod_Candidatura, Cod_Candidato, Cod_Cargo, Cod_Partido, Ano, Cod_Pleito, Cod_Candidatura_Vice, Eleito, Total_Doacoes) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """
+                cursor.execute(query, (codigo_candidatura, codigo_candidato, codigo_cargo, cod_partido, ano, cod_pleito, cod_candidatura_vice, eleito, total_doacoes))
+            
+            elif entity == 'individuo':
+                cpf = request.form['cpf']
+                nome = request.form['nome_ind']
+                ficha_limpa = request.form.get('ficha_limpa', 'TRUE')
+                cod_equipe = request.form['partido']
+                query = "INSERT INTO Individuo (CPF, Nome, Ficha_Limpa, Cod_Equipe) VALUES (%s, %s, %s, %s)"
+                cursor.execute(query, (cpf, nome, ficha_limpa, cod_equipe))
+            
+            elif  entity == 'cargo':
+                codigo_cargo = request.form['cod_Cargo']
+                descricao = request.form['descricao']
+                localidade = request.form['localidade']
+                qtd_eleitos = request.form['qtd_Eleitos']
+                pais = request.form['pais']
+                estado = request.form.get('estado', None)
+                cidade = request.form.get('cidade', None)
+                
+                query = """
+                    INSERT INTO Cargo (Cod_Cargo, Descricao, Localidade, Qtd_Eleitos, Pais, Estado, Cidade) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """
+                cursor.execute(query, (codigo_cargo, descricao, localidade, qtd_eleitos, pais, estado, cidade))
+                    
+            elif entity == 'equipeapoio':
+                cod_equipe = request.form['cod_equipe']
+                nome_equipe = request.form['nomeEquipe']
+                query = "INSERT INTO EquipeApoio (Cod_Equipe, Nome) VALUES (%s, %s)"
+                cursor.execute(query, (cod_equipe, nome_equipe))
+
+            elif entity == 'processojudicial':
+                codigo_processo = request.form['codigo_processo']
+                codigo_individuo = request.form['codigo_individuo']
+                data_inicio = request.form['data_Inicio']
+                julgado = request.form.get('julgado', 'FALSE')
+                data_termino = request.form['data_termino'] if 'data_termino' in request.form else None
+                procedente = request.form.get('procedente', 'FALSE')
+                
+                query = """
+                    INSERT INTO ProcessoJudicial 
+                    (Cod_Processo, Cod_Individuo, Data_Inicio, Julgado, Data_Termino, Procedente) 
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """
+                cursor.execute(query, (codigo_processo, codigo_individuo, data_inicio, julgado, data_termino, procedente))
+
+            conn.commit()
+        
+        except (Exception, psycopg2.Error) as error:
+            conn.rollback()  # Reverter a transação em caso de erro
+            message = f"Houve um problema com os inputs: {error}"
+        
+        finally:
+            cursor.close()
+            conn.close()
+
         return render_template('inserir.html', message=message)
     
     return render_template('inserir.html')
@@ -323,7 +334,6 @@ def doacoes():
                 exists = cursor.fetchone()
                 
                 if exists:
-                    # Atualiza apenas a tabela Candidatura se a nota já existir
                     query_update_candidatura = """
                         UPDATE Candidatura
                         SET Total_Doacoes = Total_Doacoes + %s
@@ -333,7 +343,6 @@ def doacoes():
                     """
                     cursor.execute(query_update_candidatura, (valor, cod_doador))
                 else:
-                    # Atualiza a tabela Candidatura e permite a inserção na tabela DoacaoPF se a nota não existir
                     query_update_candidatura = """
                         UPDATE Candidatura
                         SET Total_Doacoes = Total_Doacoes + %s
@@ -377,3 +386,4 @@ def doacoes():
 
 if __name__ == '__main__':
     app.run(debug=True)
+

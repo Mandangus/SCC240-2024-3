@@ -32,7 +32,7 @@ CREATE TABLE Cargo (
 
 CREATE TABLE ProgramaPartido(
 	Cod_Programa INTEGER PRIMARY KEY,
-	Descricao VARCHAR(250) NOT NULL
+	Descricao VARCHAR(250) UNIQUE NOT NULL,
 );
 
 CREATE TABLE Partido(
@@ -50,10 +50,10 @@ CREATE TABLE Candidatura (
     Cod_Cargo INTEGER NOT NULL,
 	Cod_Partido INTEGER NOT NULL, 
     Ano INTEGER NOT NULL,
-    Cod_Pleito INTEGER,
+    Cod_Pleito INTEGER NOT NULL,
     Cod_Candidatura_Vice INTEGER,
     Eleito BOOLEAN DEFAULT FALSE,
-    Total_Doacoes DECIMAL(15, 2) DEFAULT 0,
+    Total_Doacoes INTEGER DEFAULT 0,
 	
     FOREIGN KEY (Cod_Candidato) REFERENCES Individuo(CPF) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (Cod_Cargo) REFERENCES Cargo(Cod_Cargo) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -83,7 +83,7 @@ CREATE TABLE Empresa (
 CREATE TABLE DoacaoPF(
 	Cod_Nota INTEGER PRIMARY KEY,
 	Cod_Individuo NUMERIC(11) NOT NULL,
-	Valor DECIMAL(10,2),
+	Valor NUMERIC(11, 2),
 	data_doacao DATE,
 	
 	FOREIGN KEY (Cod_Individuo) REFERENCES Individuo(CPF) ON DELETE CASCADE ON UPDATE CASCADE
@@ -92,7 +92,7 @@ CREATE TABLE DoacaoPF(
 CREATE TABLE DoadorPJ(
 	Cod_Candidatura INTEGER,
 	Cod_Empresa NUMERIC(14),
-	Valor DECIMAL(10,2),
+	Valor NUMERIC(11,2),
 	data_doacao DATE,
 	
 	CONSTRAINT pk_doaPJ PRIMARY KEY (Cod_Candidatura, Cod_Empresa),
