@@ -51,7 +51,7 @@ CREATE TABLE Candidatura (
 	Cod_Partido INTEGER NOT NULL, 
     Ano INTEGER NOT NULL,
     Cod_Pleito INTEGER NOT NULL,
-    Cod_Candidatura_Vice VARCHAR(14),
+    Cod_Candidatura_Vice INTEGER,
     Eleito BOOLEAN DEFAULT FALSE,
     Total_Doacoes INTEGER DEFAULT 0,
 	
@@ -201,3 +201,68 @@ CREATE TRIGGER verifica_localidade
 BEFORE INSERT OR UPDATE ON Cargo
 FOR EACH ROW
 EXECUTE FUNCTION valida_localidade();
+
+CREATE OR REPLACE FUNCTION check_cargo_limits() 
+RETURNS TRIGGER AS $$
+DECLARE
+    max_allowed INTEGER;
+    current_count INTEGER;
+BEGIN
+    CASE NEW.Cod_Cargo
+        WHEN '1' THEN
+            max_allowed := 1;
+        WHEN '2' THEN
+            max_allowed := 81;
+        WHEN '3' THEN
+            max_allowed := 513;
+        WHEN '4' THEN
+            max_allowed := 27;
+        WHEN '5' THEN
+            max_allowed := 1059;
+        WHEN '6' THEN
+            max_allowed := 5570;
+        WHEN '7' THEN
+            max_allowed := 57931;
+        ELSE
+            RAISE EXCEPTION 'Cargo não reconhecido: %', NEW.Cod_Cargo;
+    END CASE;
+
+    SELECT COUNT(*) INTO current_count 
+    FROM Candidatura
+    WHERE Cod_Cargo = NEW.Cod_Cargo AND Eleito = TRUE AND Ano = NEW.Ano;
+
+    IF NEW.Eleito = TRUE AND current_count >= max_allowed THEN
+        RAISE EXCEPTION 'Limite de eleitos para o cargo % excedido. Máximo permitido: %', NEW.Cod_Cargo, max_allowed;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER check_cargo_limits_trigger
+BEFORE INSERT OR UPDATE ON Candidatura
+FOR EACH ROW
+EXECUTE FUNCTION check_cargo_limits();
+
+CREATE OR REPLACE FUNCTION check_unique_candidacy_per_year()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM Candidatura
+        WHERE Cod_Candidato = NEW.Cod_Candidato
+        AND Ano = NEW.Ano
+        AND Cod_Cargo <> NEW.Cod_Cargo
+    ) THEN
+        RAISE EXCEPTION 'O indivíduo % já possui uma candidatura registrada para outro cargo no ano %.', NEW.Cod_Candidato, NEW.Ano;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Criação do trigger
+CREATE TRIGGER check_unique_candidacy_per_year_trigger
+BEFORE INSERT ON Candidatura
+FOR EACH ROW
+EXECUTE FUNCTION check_unique_candidacy_per_year();
