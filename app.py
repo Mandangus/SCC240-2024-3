@@ -88,11 +88,11 @@ def list_candidaturas():
             filters.append("Candidatura.Ano = %s")
             params.append(ano)
         if nome_candidato:
-            filters.append("Individuo.Nome=%s")
+            filters.append("Individuo.Nome LIKE %s")
             params.append(f"%{nome_candidato}%")
         if cargo:
-            filters.append("Cargo.cod_cargo=%s")
-            params.append(f"%{cargo}%")
+            filters.append("Cargo.cod_cargo = %s")
+            params.append(cargo)
 
         if filters:
             query += " WHERE " + " AND ".join(filters)
@@ -170,7 +170,8 @@ def delete_entity():
             'equipeapoio': 'EquipeApoio',
             'doadoresf': 'DoacaoPF',
             'doadoresj': 'DoadorPJ',
-            'processojudicial': 'ProcessoJudicial'
+            'processojudicial': 'ProcessoJudicial',
+            'empresa': 'empresa'
         }
 
         id_column_mapping = {
@@ -181,15 +182,19 @@ def delete_entity():
             'equipeapoio': 'Cod_Equipe',
             'doadoresf': 'Cod_Nota',
             'doadoresj': 'Cod_Candidatura',
-            'processojudicial': 'Cod_Processo'
+            'processojudicial': 'Cod_Processo',
+            'empresa': 'cnpj'
         }
 
         table = table_mapping.get(entity)
         id_column = id_column_mapping.get(entity)
 
         if table and id_column:
-            if entity == 'individuo' and (not id.isdigit() or len(id) != 11):
-                message = "CPF inválido. Deve conter 11 dígitos."
+            if entity == 'individuo' and (len(id) != 14):
+                message = "CPF inválido ou não encontrado!"
+                return render_template('delete.html', message=message)
+            elif entity == 'empresa' and (len(id) != 18):
+                message = "CNPJ inválido ou não encontrado!"
                 return render_template('delete.html', message=message)
                 
             query = f"DELETE FROM {table} WHERE {id_column} = %s"
@@ -300,6 +305,12 @@ def inserir():
                 nome_equipe = request.form['nomeEquipe']
                 query = "INSERT INTO EquipeApoio (Cod_Equipe, Nome) VALUES (%s, %s)"
                 cursor.execute(query, (cod_equipe, nome_equipe))
+
+            elif entity == 'empresa':
+                cnpj = request.form['cnpj']
+                nome = request.form['nomeEmpresa']
+                query = "INSERT INTO Empresa (CNPJ, Nome) VALUES (%s, %s)"
+                cursor.execute(query, (cnpj, nome))
 
             elif entity == 'processojudicial':
                 codigo_processo = request.form['codigo_processo']

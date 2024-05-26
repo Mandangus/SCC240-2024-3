@@ -45,7 +45,6 @@ function toggleDoadorFields() {
         }
     }
 
-
     function toggleDoadorFields() {
     var tipoDoador = document.getElementById("tipo_doador").value;
     var cpfField = document.getElementById("cpf_field");
@@ -62,3 +61,40 @@ function toggleDoadorFields() {
         cnpjField.style.display = "none";
     }
 }
+
+function formatarCPF(input) {
+    let cpf = input.value.replace(/\D/g, '');
+
+    cpf = cpf.replace(/(\d{3})(\d)/, '$1.$2');
+    cpf = cpf.replace(/(\d{3})(\d)/, '$1.$2');
+    cpf = cpf.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    input.value = cpf;
+}
+
+function formatarCNPJ(input) {
+    let cnpj = input.value.replace(/\D/g, '');
+
+    cnpj = cnpj.replace(/^(\d{2})(\d)/, '$1.$2');
+    cnpj = cnpj.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+    cnpj = cnpj.replace(/\.(\d{3})(\d)/, '.$1/$2');
+    cnpj = cnpj.replace(/(\d{4})(\d)/, '$1-$2');
+    input.value = cnpj;
+}
+
+document.getElementById('entity').addEventListener('change', function() {
+    var entityIdInput = document.getElementById('id');
+    entityIdInput.value = '';
+if (this.value === 'individuo') {
+        entityIdInput.placeholder = "Digite o CPF";
+        entityIdInput.oninput = function() {
+            formatarCPF(this);
+        };
+    }else if (this.value === 'empresa') {
+        entityIdInput.placeholder = "Digite o CNPJ";
+        entityIdInput.oninput = function() {
+            formatarCNPJ(this);
+        };
+    }
+    else
+        entityIdInput.placeholder = "";
+});
