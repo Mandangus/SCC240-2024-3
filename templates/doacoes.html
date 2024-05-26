@@ -26,7 +26,7 @@
                 <option value="">Selecione</option>
                 <option value="Físico">Físico</option>
                 <option value="Jurídico">Jurídico</option>
-            </select>
+            </select><br><br>
 
             <!-- Formulário para Doador Físico -->
             <div id="doacaoPF-fields" style="display:none;">
@@ -56,10 +56,10 @@
                 
                 <label for="data_doacao_pj">Data da Doação:</label>
                 <input type="date" id="data_doacao_pj" name="data_doacao_pj">
-            </div>
+            </div><br>
             
             <button type="submit">Registrar Doação</button>
-        </form>
+        </form><br>
         {% if message %}
         <p>{{ message }}</p>
         {% endif %}

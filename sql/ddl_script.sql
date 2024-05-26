@@ -32,7 +32,7 @@ CREATE TABLE Cargo (
 
 CREATE TABLE ProgramaPartido(
 	Cod_Programa INTEGER PRIMARY KEY,
-	Descricao VARCHAR(250) NOT NULL
+	Descricao VARCHAR(250) UNIQUE NOT NULL
 );
 
 CREATE TABLE Partido(
@@ -50,18 +50,17 @@ CREATE TABLE Candidatura (
     Cod_Cargo INTEGER NOT NULL,
 	Cod_Partido INTEGER NOT NULL, 
     Ano INTEGER NOT NULL,
-    Cod_Pleito INTEGER,
+    Cod_Pleito INTEGER NOT NULL,
     Cod_Candidatura_Vice INTEGER,
     Eleito BOOLEAN DEFAULT FALSE,
-    Total_Doacoes DECIMAL(15, 2) DEFAULT 0,
+    Total_Doacoes INTEGER DEFAULT 0,
 	
     FOREIGN KEY (Cod_Candidato) REFERENCES Individuo(CPF) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (Cod_Cargo) REFERENCES Cargo(Cod_Cargo) ON DELETE CASCADE ON UPDATE CASCADE,
 	FOREIGN KEY (Cod_Partido) REFERENCES Partido(Cod_Partido) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (Cod_Pleito) REFERENCES Pleito(Cod_Pleito) ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY (Cod_Pleito) REFERENCES Pleito(Cod_Pleito) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (Cod_Candidatura_Vice) REFERENCES Candidatura(Cod_Candidatura) ON DELETE SET NULL ON UPDATE CASCADE
 );
-
 
 CREATE TABLE ProcessoJudicial (
     Cod_Processo INTEGER PRIMARY KEY,
@@ -83,7 +82,7 @@ CREATE TABLE Empresa (
 CREATE TABLE DoacaoPF(
 	Cod_Nota INTEGER PRIMARY KEY,
 	Cod_Individuo NUMERIC(11) NOT NULL,
-	Valor DECIMAL(10,2),
+	Valor NUMERIC(11, 2),
 	data_doacao DATE,
 	
 	FOREIGN KEY (Cod_Individuo) REFERENCES Individuo(CPF) ON DELETE CASCADE ON UPDATE CASCADE
@@ -92,7 +91,7 @@ CREATE TABLE DoacaoPF(
 CREATE TABLE DoadorPJ(
 	Cod_Candidatura INTEGER,
 	Cod_Empresa NUMERIC(14),
-	Valor DECIMAL(10,2),
+	Valor NUMERIC(11,2),
 	data_doacao DATE,
 	
 	CONSTRAINT pk_doaPJ PRIMARY KEY (Cod_Candidatura, Cod_Empresa),
@@ -133,18 +132,23 @@ BEFORE INSERT ON Candidatura
 FOR EACH ROW
 EXECUTE FUNCTION verificar_ficha_limpa();
 
---checa validez para vice candidatura
+-- Função para verificar a validade da candidatura
 CREATE OR REPLACE FUNCTION check_valid_candidatura() RETURNS TRIGGER AS $$
 BEGIN
-    IF NEW.Cod_Candidatura_Vice IS NOT NULL AND
-       NOT EXISTS (SELECT 1 FROM Candidatura WHERE Cod_Candidatura = NEW.Cod_Candidatura_Vice) THEN
-        RAISE EXCEPTION 'Invalid Vice Candidature';
+    -- Verifica se o candidato está tentando ser seu próprio vice
+    IF NEW.Cod_Candidato = NEW.Cod_Candidatura_Vice THEN
+        RAISE EXCEPTION 'Um candidato não pode ser vice de si mesmo.';
+    ELSIF NEW.Cod_Candidatura_Vice IS NOT NULL AND
+       EXISTS (SELECT 1 FROM Candidatura WHERE Cod_Candidato = NEW.Cod_Candidato) THEN
+        RAISE EXCEPTION 'O vice-candidato não pode ser um candidato na tabela.';
     END IF;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_valid_candidatura
+-- Trigger para a tabela Candidatura
+CREATE TRIGGER validate_candidatura
 BEFORE INSERT OR UPDATE ON Candidatura
 FOR EACH ROW EXECUTE FUNCTION check_valid_candidatura();
 
@@ -188,7 +192,6 @@ AFTER INSERT ON DoadorPJ
 FOR EACH ROW
 EXECUTE FUNCTION atualizar_total_doacoes_pj();
 
---GARANTE QUE OS CXAMPOS DE LOCAL SJAM NOT NULL VARIANDO COM A LOCALIDADE
 CREATE OR REPLACE FUNCTION valida_localidade()
 RETURNS TRIGGER AS $$
 BEGIN

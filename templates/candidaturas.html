@@ -20,6 +20,11 @@
         </nav>
     </header>
     <div class="container">
+        <ul id="candidates">
+            {% for candidatura in candidaturas %}
+            <li>{{ candidatura }}</li><br>
+            {% endfor %}
+        </ul><br>
         <div class="form-container">
             <form method="GET" action="/candidaturas">
                 <label for="ano">Ano:</label>
@@ -41,11 +46,6 @@
                 <button type="submit">Buscar</button>
             </form>
         </div>
-        <ul id="candidates">
-            {% for candidatura in candidaturas %}
-            <li>{{ candidatura }}</li>
-            {% endfor %}
-        </ul>
     </div>
     <footer>
         <p>&copy; 2024 Sistema Eleitoral. Todos os direitos reservados.</p>
