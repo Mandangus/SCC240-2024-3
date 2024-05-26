@@ -10,7 +10,7 @@ CREATE TABLE EquipeApoio (
 );
 
 CREATE TABLE Individuo(
-	CPF NUMERIC(11) PRIMARY KEY,
+	CPF VARCHAR(14) PRIMARY KEY,
 	Nome VARCHAR(50) NOT NULL,
 	Ficha_Limpa BOOLEAN NOT NULL DEFAULT TRUE,
 	Cod_Equipe INTEGER DEFAULT NULL,
@@ -46,12 +46,12 @@ CREATE TABLE Partido(
 
 CREATE TABLE Candidatura (
     Cod_Candidatura INTEGER PRIMARY KEY,
-    Cod_Candidato NUMERIC(11) NOT NULL,
+    Cod_Candidato VARCHAR(14) NOT NULL,
     Cod_Cargo INTEGER NOT NULL,
 	Cod_Partido INTEGER NOT NULL, 
     Ano INTEGER NOT NULL,
     Cod_Pleito INTEGER NOT NULL,
-    Cod_Candidatura_Vice INTEGER,
+    Cod_Candidatura_Vice VARCHAR(14),
     Eleito BOOLEAN DEFAULT FALSE,
     Total_Doacoes INTEGER DEFAULT 0,
 	
@@ -64,7 +64,7 @@ CREATE TABLE Candidatura (
 
 CREATE TABLE ProcessoJudicial (
     Cod_Processo INTEGER PRIMARY KEY,
-    Cod_Individuo NUMERIC(11) NOT NULL,
+    Cod_Individuo VARCHAR(14) NOT NULL,
 	Data_Inicio DATE NOT NULL,
 	Julgado BOOLEAN NOT NULL,
     Data_Termino DATE,
@@ -75,13 +75,13 @@ CREATE TABLE ProcessoJudicial (
 );
 
 CREATE TABLE Empresa (
-    CNPJ NUMERIC(14) PRIMARY KEY,
-    Nome VARCHAR(50)
+    CNPJ VARCHAR(18) PRIMARY KEY,
+    Nome VARCHAR(50) UNIQUE NOT NULL
 );
 
 CREATE TABLE DoacaoPF(
 	Cod_Nota INTEGER PRIMARY KEY,
-	Cod_Individuo NUMERIC(11) NOT NULL,
+	Cod_Individuo VARCHAR(14) NOT NULL,
 	Valor NUMERIC(11, 2),
 	data_doacao DATE,
 	
@@ -90,7 +90,7 @@ CREATE TABLE DoacaoPF(
 
 CREATE TABLE DoadorPJ(
 	Cod_Candidatura INTEGER,
-	Cod_Empresa NUMERIC(14),
+	Cod_Empresa VARCHAR(18),
 	Valor NUMERIC(11,2),
 	data_doacao DATE,
 	
@@ -132,23 +132,17 @@ BEFORE INSERT ON Candidatura
 FOR EACH ROW
 EXECUTE FUNCTION verificar_ficha_limpa();
 
--- Função para verificar a validade da candidatura
 CREATE OR REPLACE FUNCTION check_valid_candidatura() RETURNS TRIGGER AS $$
 BEGIN
-    -- Verifica se o candidato está tentando ser seu próprio vice
-    IF NEW.Cod_Candidato = NEW.Cod_Candidatura_Vice THEN
-        RAISE EXCEPTION 'Um candidato não pode ser vice de si mesmo.';
-    ELSIF NEW.Cod_Candidatura_Vice IS NOT NULL AND
-       EXISTS (SELECT 1 FROM Candidatura WHERE Cod_Candidato = NEW.Cod_Candidato) THEN
-        RAISE EXCEPTION 'O vice-candidato não pode ser um candidato na tabela.';
+    IF NEW.Cod_Candidatura_Vice IS NOT NULL AND
+       NOT EXISTS (SELECT 1 FROM Candidatura WHERE Cod_Candidatura = NEW.Cod_Candidatura_Vice) THEN
+        RAISE EXCEPTION 'Invalid Vice Candidature';
     END IF;
-
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger para a tabela Candidatura
-CREATE TRIGGER validate_candidatura
+CREATE TRIGGER trigger_valid_candidatura
 BEFORE INSERT OR UPDATE ON Candidatura
 FOR EACH ROW EXECUTE FUNCTION check_valid_candidatura();
 

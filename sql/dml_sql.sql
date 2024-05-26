@@ -1,12 +1,13 @@
+-- Inserções na tabela Pleito
 INSERT INTO Pleito (Cod_Pleito, Qtd_Votos) VALUES
-(1, 100),
-(2, 200),
-(3, 150),
-(4, 180),
-(5, 120),
-(6, 220);
+(1, 1000),
+(2, 1500),
+(3, 2000),
+(4, 1800),
+(5, 2200),
+(6, 2500);
 
--- Inserções para a tabela EquipeApoio
+-- Inserções na tabela EquipeApoio
 INSERT INTO EquipeApoio (Cod_Equipe, Nome) VALUES
 (1, 'Equipe 1'),
 (2, 'Equipe 2'),
@@ -15,34 +16,34 @@ INSERT INTO EquipeApoio (Cod_Equipe, Nome) VALUES
 (5, 'Equipe 5'),
 (6, 'Equipe 6');
 
--- Inserções para a tabela Individuo
+-- Inserções na tabela Individuo
 INSERT INTO Individuo (CPF, Nome, Ficha_Limpa, Cod_Equipe) VALUES
-(11111111111, 'Individuo 1', TRUE, 1),
-(22222222222, 'Individuo 2', TRUE, 2),
-(33333333333, 'Individuo 3', TRUE, 3),
-(44444444444, 'Individuo 4', TRUE, 4),
-(55555555555, 'Individuo 5', TRUE, 5),
-(66666666666, 'Individuo 6', TRUE, 6);
+('111.111.111-11', 'Fulano', TRUE, 1),
+('222.222.222-22', 'Ciclano', TRUE, 2),
+('333.333.333-33', 'Beltrano', TRUE, 3),
+('444.444.444-44', 'João', TRUE, 4),
+('555.555.555-55', 'Maria', TRUE, 5),
+('666.666.666-66', 'José', TRUE, 6);
 
--- Inserções para a tabela Cargo
+-- Inserções na tabela Cargo
 INSERT INTO Cargo (Cod_Cargo, Descricao, Localidade, Qtd_Eleitos, Pais, Estado, Cidade) VALUES
-(1, 'Cargo 1', 'MUNICIPAL', 1, 'BRASIL', 'Estado 1', 'Cidade 1'),
-(2, 'Cargo 2', 'ESTADUAL', 1, 'BRASIL', 'Estado 2', NULL),
-(3, 'Cargo 3', 'FEDERAL', 1, 'BRASIL', NULL, NULL),
-(4, 'Cargo 4', 'MUNICIPAL', 1, 'BRASIL', 'Estado 3', 'Cidade 3'),
-(5, 'Cargo 5', 'ESTADUAL', 1, 'BRASIL', 'Estado 4', NULL),
-(6, 'Cargo 6', 'FEDERAL', 1, 'BRASIL', NULL, NULL);
+(1, 'Prefeito', 'MUNICIPAL', 1, 'BRASIL', 'São Paulo', 'São Paulo'),
+(2, 'Governador', 'ESTADUAL', 1, 'BRASIL', 'Rio de Janeiro', NULL),
+(3, 'Senador', 'FEDERAL', 2, 'BRASIL', NULL, NULL),
+(4, 'Deputado Estadual', 'ESTADUAL', 5, 'BRASIL', 'Minas Gerais', NULL),
+(5, 'Deputado Federal', 'FEDERAL', 10, 'BRASIL', NULL, NULL),
+(6, 'Vereador', 'MUNICIPAL', 3, 'BRASIL', 'Porto Alegre', 'Rio Grande do Sul');
 
--- Inserções para a tabela ProgramaPartido
+-- Inserções na tabela ProgramaPartido
 INSERT INTO ProgramaPartido (Cod_Programa, Descricao) VALUES
-(1, 'Programa Partido 1'),
-(2, 'Programa Partido 2'),
-(3, 'Programa Partido 3'),
-(4, 'Programa Partido 4'),
-(5, 'Programa Partido 5'),
-(6, 'Programa Partido 6');
+(1, 'Programa A'),
+(2, 'Programa B'),
+(3, 'Programa C'),
+(4, 'Programa D'),
+(5, 'Programa E'),
+(6, 'Programa F');
 
--- Inserções para a tabela Partido
+-- Inserções na tabela Partido
 INSERT INTO Partido (Cod_Partido, Nome, Cod_Programa) VALUES
 (1, 'Partido 1', 1),
 (2, 'Partido 2', 2),
@@ -51,47 +52,48 @@ INSERT INTO Partido (Cod_Partido, Nome, Cod_Programa) VALUES
 (5, 'Partido 5', 5),
 (6, 'Partido 6', 6);
 
--- Inserções para a tabela Candidatura
+-- Inserções na tabela Candidatura
 INSERT INTO Candidatura (Cod_Candidatura, Cod_Candidato, Cod_Cargo, Cod_Partido, Ano, Cod_Pleito, Cod_Candidatura_Vice, Eleito, Total_Doacoes) VALUES
-(1, 11111111111, 1, 1, 2024, 1, NULL, TRUE, 0),
-(2, 22222222222, 2, 2, 2024, 2, NULL, FALSE, 0),
-(3, 33333333333, 3, 3, 2024, 3, NULL, FALSE, 0),
-(4, 44444444444, 4, 4, 2024, 4, NULL, FALSE, 0),
-(5, 55555555555, 5, 5, 2024, 5, NULL, FALSE, 0),
-(6, 66666666666, 6, 6, 2024, 6, NULL, FALSE, 0);
+(1, '111.111.111-11', 1, 1, 2024, 1, NULL, FALSE, 0),
+(2, '222.222.222-22', 2, 2, 2024, 2, NULL, FALSE, 0),
+(3, '333.333.333-33', 3, 3, 2024, 3, NULL, FALSE, 0),
+(4, '444.444.444-44', 4, 4, 2024, 4, NULL, FALSE, 0),
+(5, '555.555.555-55', 5, 5, 2024, 5, NULL, FALSE, 0),
+(6, '666.666.666-66', 6, 6, 2024, 6, NULL, FALSE, 0);
 
--- Inserções para a tabela ProcessoJudicial
+-- Inserções na tabela ProcessoJudicial
 INSERT INTO ProcessoJudicial (Cod_Processo, Cod_Individuo, Data_Inicio, Julgado, Data_Termino, Procedente) VALUES
-(1, 11111111111, '2024-01-01', TRUE, '2024-02-01', TRUE),
-(2, 22222222222, '2024-01-02', TRUE, '2024-02-02', FALSE),
-(3, 33333333333, '2024-01-03', TRUE, '2024-02-03', TRUE),
-(4, 44444444444, '2024-01-04', TRUE, '2024-02-04', FALSE),
-(5, 55555555555, '2024-01-05', TRUE, '2024-02-05', TRUE),
-(6, 66666666666, '2024-01-06', TRUE, '2024-02-06', FALSE);
+(1, '444.444.444-44', '2023-01-01', TRUE, '2023-02-01', TRUE),
+(2, '666.666.666-66', '2023-03-01', TRUE, '2023-04-01', FALSE),
+(3, '222.222.222-22', '2023-05-01', FALSE, NULL, NULL),
+(4, '555.555.555-55', '2023-06-01', TRUE, '2023-07-01', TRUE),
+(5, '111.111.111-11', '2023-08-01', FALSE, NULL, NULL),
+(6, '333.333.333-33', '2023-09-01', TRUE, '2023-10-01', FALSE);
 
--- Inserções para a tabela Empresa
+-- Inserções na tabela Empresa
 INSERT INTO Empresa (CNPJ, Nome) VALUES
-(12345678901234, 'Empresa 1'),
-(23456789012345, 'Empresa 2'),
-(34567890123456, 'Empresa 3'),
-(45678901234567, 'Empresa 4'),
-(56789012345678, 'Empresa 5'),
-(67890123456789, 'Empresa 6');
+('01.234.567/0001-89', 'Empresa A'),
+('12.345.678/0001-90', 'Empresa B'),
+('23.456.789/0001-91', 'Empresa C'),
+('34.567.890/0001-92', 'Empresa D'),
+('45.678.901/0001-93', 'Empresa E'),
+('56.789.012/0001-94', 'Empresa F');
 
--- Inserções para a tabela DoacaoPF
+-- Inserções na tabela DoacaoPF
 INSERT INTO DoacaoPF (Cod_Nota, Cod_Individuo, Valor, data_doacao) VALUES
-(1, 11111111111, 100.00, '2024-01-01'),
-(2, 22222222222, 200.00, '2024-01-02'),
-(3, 33333333333, 150.00, '2024-01-03'),
-(4, 44444444444, 180.00, '2024-01-04'),
-(5, 55555555555, 120.00, '2024-01-05'),
-(6, 66666666666, 220.00, '2024-01-06');
+(1, '111.111.111-11', 500.00, '2024-01-01'),
+(2, '222.222.222-22', 1000.00, '2024-02-01'),
+(3, '333.333.333-33', 1500.00, '2024-02-15'),
+(4, '444.444.444-44', 2000.00, '2024-03-01'),
+(5, '555.555.555-55', 2500.00, '2024-03-15'),
+(6, '666.666.666-66', 3000.00, '2024-04-01'),
+(7, '111.111.111-11', 3500.00, '2024-04-15'),
+(8, '222.222.222-22', 4000.00, '2024-05-01');
 
--- Inserções para a tabela DoadorPJ
 INSERT INTO DoadorPJ (Cod_Candidatura, Cod_Empresa, Valor, data_doacao) VALUES
-(1, 12345678901234, 1000.00, '2024-01-01'),
-(2, 23456789012345, 2000.00, '2024-01-02'),
-(3, 34567890123456, 1500.00, '2024-01-03'),
-(4, 45678901234567, 1800.00, '2024-01-04'),
-(5, 56789012345678, 1200.00, '2024-01-05'),
-(6, 67890123456789, 2200.00, '2024-01-06');
+(1, '01.234.567/0001-89', 5000.00, '2024-01-01'),
+(2, '12.345.678/0001-90', 6000.00, '2024-02-01'),
+(3, '23.456.789/0001-91', 7000.00, '2024-03-01'),
+(4, '34.567.890/0001-92', 8000.00, '2024-04-01'),
+(5, '45.678.901/0001-93', 9000.00, '2024-05-01'),
+(6, '56.789.012/0001-94', 10000.00, '2024-06-01');
