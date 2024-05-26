@@ -27,6 +27,25 @@ function toggleDoadorFields() {
             cnpjField.style.display = "none";
         }
     }
+
+    function toggleForm() {
+        var doadorTipo = document.getElementById("doador_tipo").value;
+        var pfForm = document.getElementById("doacaoPF-fields");
+        var pjForm = document.getElementById("doacaoPJ-fields");
+        
+        if (doadorTipo === "Físico") {
+            pfForm.style.display = "block";
+            pjForm.style.display = "none";
+        } else if (doadorTipo === "Jurídico") {
+            pfForm.style.display = "none";
+            pjForm.style.display = "block";
+        } else {
+            pfForm.style.display = "none";
+            pjForm.style.display = "none";
+        }
+    }
+
+
     function toggleDoadorFields() {
     var tipoDoador = document.getElementById("tipo_doador").value;
     var cpfField = document.getElementById("cpf_field");
