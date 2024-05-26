@@ -32,7 +32,7 @@
                 <option value="cargo">Cargo</option>
                 <option value="equipeapoio">Equipe de Apoio</option>
                 <option value="processojudicial">Processo Judicial</option>
-            </select>
+            </select><br><br>
             
             <!-- Campos para Pleito -->
             <div id="pleito-fields" class="entity-fields" style="display:none;">
@@ -147,10 +147,10 @@
                 <input type="date" id="data_termino" name="data_termino">
                 <label for="procedente">Procedente:</label>
                 <input type="checkbox" id="procedente" name="procedente">
-            </div>
+            </div><br>
             
             <button type="submit">Inserir Dados</button>
-        </form>
+        </form><br>
 
         {% if message %}
         <p>{{ message }}</p>
