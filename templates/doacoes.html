@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doações</title>
+    <title>Registrar Doação</title>
     <link rel="stylesheet" href="/static/styles.css">
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </head>
 <body>
     <header>
@@ -14,28 +13,59 @@
                 <li><a href="/candidaturas">Listar Candidaturas</a></li>
                 <li><a href="/candidaturas/eleitos">Relatório de Candidatos Eleitos</a></li>
                 <li><a href="/candidatos/ficha-limpa">Listar Candidatos Ficha Limpa</a></li>
+                <li><a href="/inserir">Inserir Dados</a></li>
                 <li><a href="/delete">Remover Entidade</a></li>
-                <li><a href="/inserir">Inserir dados</a></li>
+                <li><a href="/">Página Principal</a></li>
             </ul>
         </nav>
     </header>
-            <form class="form-container "action="/doacoes" method="POST">
-                <label for="cod_doador">Código do Doador:</label>
-                <input type="number" id="cod_doador" name="cod_doador" required>
+    <div class="container">
+        <form method="POST" action="/doacoes">
+            <label for="doador_tipo">Tipo de Doador:</label>
+            <select id="doador_tipo" name="doador_tipo" onchange="toggleForm()" required>
+                <option value="">Selecione</option>
+                <option value="Físico">Físico</option>
+                <option value="Jurídico">Jurídico</option>
+            </select>
 
-                <label for="cod_candidatura">Código da candidatura:</label>
-                <input type="number" id="cod_candidatura" name="cod_candidatura" required>
+            <!-- Formulário para Doador Físico -->
+            <div id="doacaoPF-fields" style="display:none;">
+                <label for="nota_doacao">Nota Fiscal da Doação:</label>
+                <input type="text" id="nota_doacao" name="nota_doacao">
 
-                <label for="valor">Valor da Doação:</label>
-                <input type="number" id="valor" name="valor" step="10" required>
+                <label for="cod_doador_pf">CPF do Doador:</label>
+                <input type="text" id="cod_doador_pf" name="cod_doador_pf">
+                
+                <label for="valor_pf">Valor:</label>
+                <input type="number" step="0.01" id="valor_pf" name="valor_pf">
+                
+                <label for="data_doacao_pf">Data da Doação:</label>
+                <input type="date" id="data_doacao_pf" name="data_doacao_pf">
+            </div>
 
-                <label for="quantDoacoes">Quantidade de Doações:</label>
-                <input type="number" id="quantDoacoes" name="quantDoacoes" step="1" required>
-
-                <button type="submit">Registrar Doação</button>
-            </form>
+            <!-- Formulário para Doador Jurídico -->
+            <div id="doacaoPJ-fields" style="display:none;">
+                <label for="cod_doador_pj">CNPJ da Empresa:</label>
+                <input type="text" id="cod_doador_pj" name="cod_doador_pj">
+                
+                <label for="cod_candidatura_pj">Código da Candidatura:</label>
+                <input type="text" id="cod_candidatura_pj" name="cod_candidatura_pj">
+                
+                <label for="valor_pj">Valor:</label>
+                <input type="number" step="0.01" id="valor_pj" name="valor_pj">
+                
+                <label for="data_doacao_pj">Data da Doação:</label>
+                <input type="date" id="data_doacao_pj" name="data_doacao_pj">
+            </div>
+            
+            <button type="submit">Registrar Doação</button>
+        </form>
+        {% if message %}
+        <p>{{ message }}</p>
+        {% endif %}
+    </div>
     <footer>
-        <p>&copy; 2024 Sistema de Gerenciamento de Campanhas</p>
+        <p>&copy; 2024 Sistema Eleitoral. Todos os direitos reservados.</p>
     </footer>
 </body>
 </html>
